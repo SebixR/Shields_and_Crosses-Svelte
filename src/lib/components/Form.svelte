@@ -6,20 +6,19 @@
 	import { Card } from './ui/card';
 	import { Input } from './ui/input';
 	import * as Select from '$lib/components/ui/select/index.js';
-	import { boundStatistics, classes } from '$lib/types/class';
+	import { boundStatistics, classes, classLabels } from '$lib/types/class';
 	import { Separator } from './ui/separator';
 	import { Button } from './ui/button';
 	import { Spinner } from './ui/spinner';
 	import StatInput from './StatInput.svelte';
-	import { createCharacter } from '$lib/api/character';
+	import { characterService } from '$lib/CharacterService.svelte';
 
 	const form = $state<Character>({
 		name: '',
 		strength: 0,
 		speed: 0,
 		intelligence: 0,
-		class: 'warrior',
-		allowCPU: true
+		class: 'warrior'
 	});
 
 	let availablePoints = $state<number>(MAX_STAT_VALUE);
@@ -55,17 +54,11 @@
 
 	const errors = $state<Record<string, string[]>>({
 		name: [],
-		strength: [],
-		speed: [],
-		intelligence: [],
 		stats: []
 	});
 
 	const validate = (): boolean => {
 		errors.name = [];
-		errors.strength = [];
-		errors.speed = [];
-		errors.intelligence = [];
 		errors.stats = [];
 
 		let isValid = true;
@@ -90,7 +83,6 @@
 		form.strength = 0;
 		form.speed = 0;
 		form.intelligence = 0;
-		form.allowCPU = true;
 
 		availablePoints = MAX_STAT_VALUE;
 	};
@@ -104,7 +96,7 @@
 		isLoading = true;
 
 		try {
-			await createCharacter(form);
+			await characterService.create(form);
 
 			isLoading = false;
 			isSuccess = true;
@@ -160,19 +152,13 @@
 
 			<Select.Root type="single" bind:value={form.class}>
 				<Select.Trigger class="w-full">
-					{form.class.charAt(0).toLocaleUpperCase() +
-						form.class.slice(1) +
-						' - ' +
-						boundStatistics[form.class]}
+					{classLabels[form.class] + ' - ' + boundStatistics[form.class]}
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Group>
 						{#each classes as cls, i (i)}
 							<Select.Item value={cls}
-								>{cls.charAt(0).toLocaleUpperCase() +
-									cls.slice(1) +
-									' - ' +
-									boundStatistics[cls]}</Select.Item
+								>{classLabels[cls] + ' - ' + boundStatistics[cls]}</Select.Item
 							>
 						{/each}
 					</Select.Group>
@@ -203,7 +189,7 @@
 
 		<Separator class="my-4" />
 
-		<div class="flex flex-row justify-end pt-2">
+		<div class="flex flex-row justify-end">
 			<Button class="cursor-pointer rounded-lg" type="submit" disabled={isLoading}>
 				{#if isLoading}
 					<Spinner class="animate-spin" />

@@ -1,4 +1,4 @@
-import type { Character } from '$lib/types/character';
+import type { Character, CharacterRecord } from '$lib/types/character';
 import { db } from '../../db';
 
 export async function createCharacter(character: Character) {
@@ -14,26 +14,16 @@ export async function createCharacter(character: Character) {
 	}
 }
 
-// export async function getAllCharacters(page?: number, size?: number): Promise<CharacterPage> {
-// 	try {
-// 		const response = await api.get('character', {
-// 			params: {
-// 				page: page ?? 0,
-// 				size: size ?? 10
-// 			}
-// 		});
+export async function getAllCharacters(page?: number, size?: number): Promise<CharacterRecord[]> {
+	try {
+		const collection = db.characters.offset((page ?? 0) * (size ?? 0)).limit(size ?? 10);
 
-// 		return {
-// 			...response.data,
-// 			content: response.data.content.map((item: CharacterRecord) => ({
-// 				...item,
-// 				class: item.class.toLocaleLowerCase()
-// 			}))
-// 		};
-// 	} catch (error) {
-// 		throw new Error('Failed to get all characters: ' + error);
-// 	}
-// }
+		return await collection.toArray();
+	} catch (error) {
+		console.error('Failed to get all characters', error);
+		throw error;
+	}
+}
 
 // export async function deleteCharacter(id: number) {
 // 	try {

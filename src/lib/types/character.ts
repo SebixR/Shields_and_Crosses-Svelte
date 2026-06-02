@@ -4,7 +4,6 @@ export interface Character {
 	speed: number;
 	intelligence: number;
 	class: 'warrior' | 'mage' | 'rogue';
-	allowCPU: boolean;
 }
 
 export interface CharacterRecord extends Character {
