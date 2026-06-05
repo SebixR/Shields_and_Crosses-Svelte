@@ -1,8 +1,7 @@
 <script lang="ts">
-	import type { Character } from '$lib/types/character';
 	import { MAX_STAT_VALUE, type Statistic } from '$lib/types/stats';
 	import { Alert, AlertTitle } from './ui/alert';
-	import { CircleCheck, CircleAlertIcon } from '@lucide/svelte/icons';
+	import { CircleAlertIcon } from '@lucide/svelte/icons';
 	import { Card } from './ui/card';
 	import { Input } from './ui/input';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -12,44 +11,46 @@
 	import { Spinner } from './ui/spinner';
 	import StatInput from './StatInput.svelte';
 	import { characterService } from '$lib/CharacterService.svelte';
+	import { BASE_CHARACTER } from '$lib/types/character';
 
-	const form = $state<Character>({
-		name: '',
-		strength: 0,
-		speed: 0,
-		intelligence: 0,
-		class: 'warrior'
-	});
-
-	let availablePoints = $state<number>(MAX_STAT_VALUE);
+	let availablePoints = $derived<number>(
+		MAX_STAT_VALUE -
+			(characterService.formCharacter.strength +
+				characterService.formCharacter.speed +
+				characterService.formCharacter.intelligence)
+	);
 
 	const onDecreaseStat = (statistic: Statistic) => {
-		if (form[statistic] <= 0) {
+		const form = characterService.formCharacter;
+		const currentVal = form[statistic];
+
+		if (currentVal <= 0) {
 			form[statistic] = 0;
 			return;
 		}
-		if (form[statistic] > MAX_STAT_VALUE) {
+		if (currentVal > MAX_STAT_VALUE) {
 			form[statistic] = MAX_STAT_VALUE;
 			return;
 		}
 
 		form[statistic]--;
-		availablePoints++;
 	};
 
 	const onIncreaseStat = (statistic: Statistic) => {
-		if (form[statistic] < 0) {
+		const form = characterService.formCharacter;
+		const currentVal = form[statistic];
+
+		if (currentVal < 0) {
 			form[statistic] = 0;
 			return;
 		}
-		if (form[statistic] >= MAX_STAT_VALUE) {
+		if (currentVal >= MAX_STAT_VALUE) {
 			form[statistic] = MAX_STAT_VALUE;
 			return;
 		}
 		if (availablePoints == 0) return;
 
 		form[statistic]++;
-		availablePoints--;
 	};
 
 	const errors = $state<Record<string, string[]>>({
@@ -58,6 +59,8 @@
 	});
 
 	const validate = (): boolean => {
+		const form = characterService.formCharacter;
+
 		errors.name = [];
 		errors.stats = [];
 
@@ -78,17 +81,10 @@
 	};
 
 	const resetForm = () => {
-		form.name = '';
-		form.class = 'warrior';
-		form.strength = 0;
-		form.speed = 0;
-		form.intelligence = 0;
-
-		availablePoints = MAX_STAT_VALUE;
+		characterService.formCharacter = BASE_CHARACTER;
 	};
 
 	let isLoading = $state(false);
-	let isSuccess = $state(false);
 	let isError = $state(false);
 
 	const submitForm = async () => {
@@ -96,14 +92,10 @@
 		isLoading = true;
 
 		try {
-			await characterService.create(form);
+			if ('id' in characterService.formCharacter) await characterService.edit();
+			else await characterService.create();
 
 			isLoading = false;
-			isSuccess = true;
-
-			setTimeout(() => {
-				isSuccess = false;
-			}, 5000);
 
 			resetForm();
 		} catch {
@@ -118,13 +110,6 @@
 </script>
 
 <div class="absolute top-4">
-	{#if isSuccess}
-		<Alert variant="default">
-			<CircleCheck />
-			<AlertTitle>Successfully created character</AlertTitle>
-		</Alert>
-	{/if}
-
 	{#if isError}
 		<Alert variant="destructive">
 			<CircleAlertIcon />
@@ -139,7 +124,7 @@
 
 		<div class="field">
 			<p>Name</p>
-			<Input type="text" placeholder="Name" bind:value={form.name} />
+			<Input type="text" placeholder="Name" bind:value={characterService.formCharacter.name} />
 		</div>
 		{#each errors.name as msg, i (i)}
 			<div class="errors">
@@ -150,9 +135,11 @@
 		<div class="field">
 			<p>Class</p>
 
-			<Select.Root type="single" bind:value={form.class}>
+			<Select.Root type="single" bind:value={characterService.formCharacter.class}>
 				<Select.Trigger class="w-full">
-					{classLabels[form.class] + ' - ' + boundStatistics[form.class]}
+					{classLabels[characterService.formCharacter.class] +
+						' - ' +
+						boundStatistics[characterService.formCharacter.class]}
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Group>
@@ -170,15 +157,33 @@
 		<span>Available points: {availablePoints}</span>
 
 		<div class="field">
-			<StatInput stat="strength" {onDecreaseStat} {onIncreaseStat} {form} {availablePoints} />
+			<StatInput
+				stat="strength"
+				{onDecreaseStat}
+				{onIncreaseStat}
+				form={characterService.formCharacter}
+				{availablePoints}
+			/>
 		</div>
 
 		<div class="field">
-			<StatInput stat="speed" {onDecreaseStat} {onIncreaseStat} {form} {availablePoints} />
+			<StatInput
+				stat="speed"
+				{onDecreaseStat}
+				{onIncreaseStat}
+				form={characterService.formCharacter}
+				{availablePoints}
+			/>
 		</div>
 
 		<div class="field">
-			<StatInput stat="intelligence" {onDecreaseStat} {onIncreaseStat} {form} {availablePoints} />
+			<StatInput
+				stat="intelligence"
+				{onDecreaseStat}
+				{onIncreaseStat}
+				form={characterService.formCharacter}
+				{availablePoints}
+			/>
 		</div>
 
 		{#each errors.stats as msg, i (i)}
