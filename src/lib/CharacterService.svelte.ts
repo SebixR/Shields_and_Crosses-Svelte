@@ -1,19 +1,28 @@
 import { db } from '../db';
-import type { Character, CharacterRecord } from './types/character';
+import { BASE_CHARACTER, type Character, type CharacterRecord } from './types/character';
+
+type FormCharacter = Character | CharacterRecord;
 
 class CharacterService {
 	#characters = $state<CharacterRecord[]>([]);
+	#formCharacter = $state<FormCharacter>(BASE_CHARACTER);
 
 	get characters() {
 		return this.#characters;
+	}
+	get formCharacter() {
+		return this.#formCharacter;
+	}
+	set formCharacter(character: FormCharacter) {
+		this.#formCharacter = character;
 	}
 
 	async init() {
 		this.#characters = await getAllCharacters();
 	}
 
-	async create(character: Character) {
-		await createCharacter(character);
+	async create() {
+		await createCharacter(this.#formCharacter);
 
 		await this.init();
 	}
@@ -22,6 +31,20 @@ class CharacterService {
 		await deleteCharacter(id);
 
 		await this.init();
+	}
+
+	async edit() {
+		try {
+			if (!this.#formCharacter || !('id' in this.#formCharacter))
+				throw new Error('Character id is null');
+
+			await db.characters.update(this.#formCharacter.id, this.#formCharacter);
+
+			await this.init();
+		} catch (error) {
+			console.error('Failed to edit character: ' + this.#formCharacter.name, error);
+			throw error;
+		}
 	}
 }
 

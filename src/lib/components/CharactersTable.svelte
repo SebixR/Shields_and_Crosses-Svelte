@@ -57,7 +57,12 @@
 							</Dialog.Content>
 						</Dialog.Root>
 
-						<Button class="me-1" variant="outline" size="icon">
+						<Button
+							onclick={() => (characterService.formCharacter = { ...character })}
+							class="me-1"
+							variant="outline"
+							size="icon"
+						>
 							<PenIcon />
 						</Button>
 					</Table.Cell>

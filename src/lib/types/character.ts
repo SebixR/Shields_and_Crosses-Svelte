@@ -23,3 +23,11 @@ export interface CharacterPage {
 export interface CharacterPlayer extends CharacterRecord {
 	swapsLeft: number;
 }
+
+export const BASE_CHARACTER: Character = {
+	name: '',
+	strength: 0,
+	speed: 0,
+	intelligence: 0,
+	class: 'warrior'
+};
