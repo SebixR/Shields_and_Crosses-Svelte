@@ -8,7 +8,7 @@
 <div class="-ms-16 flex flex-row gap-2">
 	<div class="flex flex-col justify-end gap-2">
 		{#each gameService.boardStats?.rowStats as stat (stat)}
-			<div class="flex h-9 items-center">
+			<div class="flex h-8 items-center">
 				<Badge variant="outline" class="w-14 text-sm">
 					{#if stat === 'strength'}
 						<BicepsFlexedIcon class="w-14" />

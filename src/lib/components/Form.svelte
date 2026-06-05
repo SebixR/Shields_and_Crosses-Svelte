@@ -199,7 +199,7 @@
 				{#if isLoading}
 					<Spinner class="animate-spin" />
 				{/if}
-				Submit
+				Create
 			</Button>
 		</div>
 	</form>

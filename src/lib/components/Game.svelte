@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MedalIcon, PlayIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
+	import { DicesIcon, MedalIcon, PlayIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
 	import { gameService } from '../../GameService.svelte';
 	import { Button } from './ui/button';
 	import { Card } from './ui/card';
@@ -9,7 +9,12 @@
 
 <div class="flex flex-row gap-2">
 	<Button disabled={gameService.calculatingPoints} onclick={() => gameService.startGame()}
-		><PlayIcon /> Play</Button
+		>{#if !gameService.playerCharacter || !gameService.cpuCharacter}
+			<DicesIcon />
+		{:else}
+			<PlayIcon />
+		{/if}
+		Play</Button
 	>
 	<Button
 		disabled={!gameService.playerCharacter && !gameService.cpuCharacter}
