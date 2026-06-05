@@ -5,16 +5,11 @@
 	import { Card } from './ui/card';
 	import GameBoard from './GameBoard.svelte';
 	import GameCharacterCard from './GameCharacterCard.svelte';
-
-	let pressedPlay = $state(false);
 </script>
 
 <div class="flex flex-row gap-2">
-	<Button
-		onclick={() => {
-			pressedPlay = true;
-			gameService.startGame();
-		}}><PlayIcon /> Play</Button
+	<Button disabled={gameService.calculatingPoints} onclick={() => gameService.startGame()}
+		><PlayIcon /> Play</Button
 	>
 	<Button
 		disabled={!gameService.playerCharacter && !gameService.cpuCharacter}
@@ -33,7 +28,7 @@
 			/>
 		</div>
 
-		{#if pressedPlay}
+		{#if gameService.playerCharacter && gameService.cpuCharacter}
 			<GameBoard />
 		{/if}
 
@@ -42,7 +37,7 @@
 		{/if}
 
 		{#if gameService.winner}
-			<Card class="border-primary">
+			<Card class="border-primary p-3">
 				{#if gameService.winner === 'draw'}
 					<div class="flex flex-row items-center gap-3">
 						<RepeatIcon />

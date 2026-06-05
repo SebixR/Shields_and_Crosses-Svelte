@@ -14,26 +14,14 @@
 	} from '@lucide/svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { gameService, TOTAL_SWAPS } from '../../GameService.svelte';
-	import type { CharacterRecord } from '$lib/types/character';
-
-	const onPlayerSelect = (character: CharacterRecord) => {
-		if (gameService.playerCharacter && gameService.playerCharacter.id === character.id)
-			gameService.playerCharacter = undefined;
-		else gameService.playerCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
-	};
-
-	const onCpuSelect = (character: CharacterRecord) => {
-		if (gameService.cpuCharacter && gameService.cpuCharacter.id === character.id)
-			gameService.cpuCharacter = undefined;
-		else gameService.cpuCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
-	};
+	import { Checkbox } from './ui/checkbox';
 </script>
 
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
-			<Table.Head class="w-6"></Table.Head>
-			<Table.Head class="w-6"></Table.Head>
+			<Table.Head class="w-6"><UserIcon class="m-auto" size="20" /></Table.Head>
+			<Table.Head class="w-6"><CpuIcon class="m-auto" size="20" /></Table.Head>
 			<Table.Head class="w-36">Name</Table.Head>
 			<Table.Head>Class</Table.Head>
 			<Table.Head><BicepsFlexed class="m-auto" size="20" /></Table.Head>
@@ -47,18 +35,26 @@
 			{#each characterService.characters as character (character.id)}
 				<Table.Row>
 					<Table.Cell
-						><Button
-							onclick={() => onPlayerSelect(character)}
-							variant={gameService.playerCharacter?.id === character.id ? 'default' : 'ghost'}
-							size="icon"><UserIcon /></Button
-						>
-					</Table.Cell>
+						><Checkbox
+							onCheckedChange={(checked) => {
+								if (checked) gameService.playerCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
+								else gameService.playerCharacter = undefined;
+
+								gameService.resetGame();
+							}}
+							checked={gameService.playerCharacter?.id === character.id}
+						/></Table.Cell
+					>
 					<Table.Cell
-						><Button
-							onclick={() => onCpuSelect(character)}
-							variant={gameService.cpuCharacter?.id === character.id ? 'default' : 'ghost'}
-							size="icon"><CpuIcon /></Button
-						>
+						><Checkbox
+							onCheckedChange={(checked) => {
+								if (checked) gameService.cpuCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
+								else gameService.cpuCharacter = undefined;
+
+								gameService.resetGame();
+							}}
+							checked={gameService.cpuCharacter?.id === character.id}
+						/>
 					</Table.Cell>
 					<Table.Cell class="font-medium">{character.name}</Table.Cell>
 					<Table.Cell>{classLabels[character.class]}</Table.Cell>
