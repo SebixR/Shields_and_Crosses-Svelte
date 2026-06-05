@@ -52,11 +52,17 @@ class CharacterService {
 			throw error;
 		}
 	}
+
+	async updateWL(id: number, win: boolean) {
+		await updateWinLoseRatio(id, win);
+
+		await this.init();
+	}
 }
 
 export const characterService = new CharacterService();
 
-export async function createCharacter(character: Character) {
+async function createCharacter(character: Character) {
 	try {
 		await db.characters.add({
 			...character,
@@ -69,7 +75,7 @@ export async function createCharacter(character: Character) {
 	}
 }
 
-export async function getAllCharacters(page?: number, size?: number): Promise<CharacterRecord[]> {
+async function getAllCharacters(page?: number, size?: number): Promise<CharacterRecord[]> {
 	try {
 		const collection = db.characters.offset((page ?? 0) * (size ?? 0)).limit(size ?? 10);
 
@@ -80,11 +86,48 @@ export async function getAllCharacters(page?: number, size?: number): Promise<Ch
 	}
 }
 
-export async function deleteCharacter(id: number) {
+async function deleteCharacter(id: number) {
 	try {
 		await db.characters.delete(id);
 	} catch (error) {
 		console.error('Failed to delete character with id: ' + id, error);
+		throw error;
+	}
+}
+
+export async function getRandomExcludingId(playerId: number): Promise<CharacterRecord | undefined> {
+	try {
+		const allIds = await db.characters.toCollection().primaryKeys();
+		const validIds = allIds.filter((id) => id !== playerId);
+		if (validIds.length === 0) return undefined;
+
+		const randomId = validIds[Math.floor(Math.random() * validIds.length)];
+		const character = await db.characters.get(randomId);
+		return character;
+	} catch (error) {
+		console.error('Failed to get random character', error);
+		throw error;
+	}
+}
+
+async function updateWinLoseRatio(id: number, win: boolean) {
+	try {
+		const characterRecord = await db.characters.get(id);
+		if (!characterRecord) throw new Error("Couldn't find character with id: " + id);
+
+		if (win) await db.characters.update(id, { wins: characterRecord.wins + 1 });
+		else await db.characters.update(id, { losses: characterRecord.losses + 1 });
+	} catch (error) {
+		console.error('Failed to update win lose ratio for character with id: ' + id, error);
+		throw error;
+	}
+}
+
+export async function getCharacterById(id: number): Promise<CharacterRecord | undefined> {
+	try {
+		return db.characters.get(id);
+	} catch (error) {
+		console.error('Failed to get character with id: ' + id, error);
 		throw error;
 	}
 }

@@ -3,13 +3,37 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { classLabels } from '$lib/types/class';
 	import { Button } from './ui/button';
-	import { BicepsFlexed, Brain, PenIcon, SportShoe, Trash2Icon } from '@lucide/svelte';
+	import {
+		BicepsFlexed,
+		Brain,
+		CpuIcon,
+		PenIcon,
+		SportShoe,
+		Trash2Icon,
+		UserIcon
+	} from '@lucide/svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { gameService, TOTAL_SWAPS } from '../../GameService.svelte';
+	import type { CharacterRecord } from '$lib/types/character';
+
+	const onPlayerSelect = (character: CharacterRecord) => {
+		if (gameService.playerCharacter && gameService.playerCharacter.id === character.id)
+			gameService.playerCharacter = undefined;
+		else gameService.playerCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
+	};
+
+	const onCpuSelect = (character: CharacterRecord) => {
+		if (gameService.cpuCharacter && gameService.cpuCharacter.id === character.id)
+			gameService.cpuCharacter = undefined;
+		else gameService.cpuCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
+	};
 </script>
 
 <Table.Root>
 	<Table.Header>
 		<Table.Row>
+			<Table.Head class="w-6"></Table.Head>
+			<Table.Head class="w-6"></Table.Head>
 			<Table.Head class="w-36">Name</Table.Head>
 			<Table.Head>Class</Table.Head>
 			<Table.Head><BicepsFlexed class="m-auto" size="20" /></Table.Head>
@@ -22,6 +46,20 @@
 		<Table.Body>
 			{#each characterService.characters as character (character.id)}
 				<Table.Row>
+					<Table.Cell
+						><Button
+							onclick={() => onPlayerSelect(character)}
+							variant={gameService.playerCharacter?.id === character.id ? 'default' : 'ghost'}
+							size="icon"><UserIcon /></Button
+						>
+					</Table.Cell>
+					<Table.Cell
+						><Button
+							onclick={() => onCpuSelect(character)}
+							variant={gameService.cpuCharacter?.id === character.id ? 'default' : 'ghost'}
+							size="icon"><CpuIcon /></Button
+						>
+					</Table.Cell>
 					<Table.Cell class="font-medium">{character.name}</Table.Cell>
 					<Table.Cell>{classLabels[character.class]}</Table.Cell>
 					<Table.Cell class="text-center">{character.strength}</Table.Cell>

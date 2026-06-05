@@ -2,6 +2,7 @@
 	import { characterService } from '$lib/CharacterService.svelte';
 	import CharactersTable from '$lib/components/CharactersTable.svelte';
 	import Form from '$lib/components/Form.svelte';
+	import Game from '$lib/components/Game.svelte';
 	import { Card } from '$lib/components/ui/card';
 	import { CircleIcon, XIcon } from '@lucide/svelte';
 	import { onMount } from 'svelte';
@@ -25,4 +26,8 @@
 
 		<CharactersTable />
 	</Card>
+
+	<Game />
+
+	<div class="h-32"></div>
 </div>
