@@ -645,8 +645,8 @@ class GameService {
 		const rowStat: Statistic | undefined = this.#boardStats.rowStats[Math.floor(index / 3)];
 		if (colStat && rowStat) {
 			if (rowStat === colStat) {
-				if (boundStatistics[character.class] === rowStat) character[rowStat] += 2;
-				else character[rowStat] += 1;
+				if (boundStatistics[character.class] === rowStat) character[rowStat] += 3;
+				else character[rowStat] += 2;
 			} else {
 				character[colStat]++;
 				character[rowStat]++;
