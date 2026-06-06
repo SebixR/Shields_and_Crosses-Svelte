@@ -1,16 +1,14 @@
 <script lang="ts">
 	import * as Drawer from '$lib/components/ui/drawer/index.js';
 	import { ChevronLeftIcon } from '@lucide/svelte';
-	import { Button } from './ui/button';
+	import { buttonVariants } from './ui/button';
 	import { Separator } from './ui/separator';
 </script>
 
 <Drawer.Root>
-	<Drawer.Trigger
-		><Button class="fixed bottom-5 left-10 rotate-90"
-			><ChevronLeftIcon /> Rules
-		</Button></Drawer.Trigger
-	>
+	<Drawer.Trigger type="button" class="{buttonVariants({})} fixed bottom-5 left-10 rotate-90">
+		<ChevronLeftIcon /> Rules
+	</Drawer.Trigger>
 	<Drawer.Content>
 		<div class="thin mx-auto w-150 overflow-auto pe-4" style="scrollbar-width: thin">
 			<article class="mt-6 flex flex-col gap-2">
