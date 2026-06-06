@@ -5,7 +5,15 @@ import {
 } from '$lib/CharacterService.svelte';
 import type { CharacterPlayer } from '$lib/types/character';
 import { boundStatistics } from '$lib/types/class';
-import type { BoardStats, Cell, GameSymbol } from '$lib/types/game';
+import {
+	BONUS_DOUBLE,
+	BONUS_WIN,
+	BONUS_WIN_WITH_BOUND_STAT,
+	type BoardStats,
+	type BonusPointDescription,
+	type Cell,
+	type GameSymbol
+} from '$lib/types/game';
 import { statistics, type Statistic } from '$lib/types/stats';
 
 export const TOTAL_SWAPS = 1;
@@ -37,6 +45,8 @@ class GameService {
 	#calculatingPoints = $state(false);
 	#winner = $state<CharacterPlayer | 'draw'>();
 	#winningPattern = $state<[number, number, number]>();
+
+	#pointsHistory = $state<BonusPointDescription[]>([]);
 
 	get playerCharacter() {
 		return this.#playerCharacter;
@@ -70,6 +80,13 @@ class GameService {
 	}
 	get winningPattern() {
 		return this.#winningPattern;
+	}
+	get pointsHistory() {
+		return this.#pointsHistory;
+	}
+
+	constructor() {
+		this.rollBoardStats();
 	}
 
 	async startGame() {
@@ -110,6 +127,7 @@ class GameService {
 			this.#winner = undefined;
 			this.#calculatingPoints = false;
 			this.#winningPattern = undefined;
+			this.#pointsHistory = [];
 
 			if (this.#playerCharacter) {
 				const playerRecord = await getCharacterById(this.#playerCharacter.id);
@@ -457,25 +475,73 @@ class GameService {
 		// double lead in bound statistic
 		if (!wasDraw) {
 			// if winner won then they get to compare their bound stat first
-			if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2)
-				winnerCharacter[this.getLowestDiffStat(winnerCharacter, loserCharacter)] += 2;
+			if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
+				const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+				winnerCharacter[lowestDiffStat] += 2;
+				this.#pointsHistory.push({
+					characterName: winnerCharacter.name,
+					points: 2,
+					description: BONUS_DOUBLE,
+					statistic: lowestDiffStat
+				});
+			}
 
-			if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2)
-				loserCharacter[this.getLowestDiffStat(loserCharacter, winnerCharacter)] += 2;
+			if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2) {
+				const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
+				loserCharacter[lowestDiffStat] += 2;
+				this.#pointsHistory.push({
+					characterName: loserCharacter.name,
+					points: 2,
+					description: BONUS_DOUBLE,
+					statistic: lowestDiffStat
+				});
+			}
 		} else {
 			// if there was a draw, then whoever has the higher bound stat goes first
 			if (winnerCharacter[winnerBoundStat] >= loserCharacter[loserBoundStat]) {
-				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2)
-					winnerCharacter[this.getLowestDiffStat(winnerCharacter, loserCharacter)] += 2;
+				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
+					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+					winnerCharacter[lowestDiffStat] += 2;
+					this.#pointsHistory.push({
+						characterName: winnerCharacter.name,
+						points: 2,
+						description: BONUS_DOUBLE,
+						statistic: lowestDiffStat
+					});
+				}
 
-				if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2)
-					loserCharacter[this.getLowestDiffStat(loserCharacter, winnerCharacter)] += 2;
+				if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2) {
+					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
+					loserCharacter[lowestDiffStat] += 2;
+					this.#pointsHistory.push({
+						characterName: loserCharacter.name,
+						points: 2,
+						description: BONUS_DOUBLE,
+						statistic: lowestDiffStat
+					});
+				}
 			} else {
-				if (loserCharacter[loserBoundStat] >= winnerCharacter[winnerBoundStat] * 2)
-					loserCharacter[this.getLowestDiffStat(loserCharacter, winnerCharacter)] += 2;
+				if (loserCharacter[loserBoundStat] >= winnerCharacter[winnerBoundStat] * 2) {
+					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
+					loserCharacter[lowestDiffStat] += 2;
+					this.#pointsHistory.push({
+						characterName: loserCharacter.name,
+						points: 2,
+						description: BONUS_DOUBLE,
+						statistic: lowestDiffStat
+					});
+				}
 
-				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2)
-					winnerCharacter[this.getLowestDiffStat(winnerCharacter, loserCharacter)] += 2;
+				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
+					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+					winnerCharacter[lowestDiffStat] += 2;
+					this.#pointsHistory.push({
+						characterName: winnerCharacter.name,
+						points: 2,
+						description: BONUS_DOUBLE,
+						statistic: lowestDiffStat
+					});
+				}
 			}
 		}
 
@@ -483,11 +549,26 @@ class GameService {
 
 		// for winning
 		if (!wasDraw) {
-			winnerCharacter[this.getLowestDiffStat(winnerCharacter, loserCharacter)] += 2;
+			let lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+			winnerCharacter[lowestDiffStat] += 2;
+			this.#pointsHistory.push({
+				characterName: winnerCharacter.name,
+				points: 2,
+				description: BONUS_WIN,
+				statistic: lowestDiffStat
+			});
+
 			// for winning with their column or row
 			if (winnerLine === winnerBoundStat) {
 				await delay(1000);
-				winnerCharacter[this.getLowestDiffStat(winnerCharacter, loserCharacter)] += 1;
+				lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+				winnerCharacter[lowestDiffStat] += 1;
+				this.#pointsHistory.push({
+					characterName: winnerCharacter.name,
+					points: 1,
+					description: BONUS_WIN_WITH_BOUND_STAT,
+					statistic: lowestDiffStat
+				});
 			}
 		}
 

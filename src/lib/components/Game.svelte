@@ -5,6 +5,7 @@
 	import { Card } from './ui/card';
 	import GameBoard from './GameBoard.svelte';
 	import GameCharacterCard from './GameCharacterCard.svelte';
+	import PointsHistory from './PointsHistory.svelte';
 </script>
 
 <div class="flex flex-row gap-2">
@@ -42,19 +43,23 @@
 		{/if}
 
 		{#if gameService.winner}
-			<Card class="border-primary p-3">
-				{#if gameService.winner === 'draw'}
-					<div class="flex flex-row items-center gap-3">
-						<RepeatIcon />
-						<span> Draw!</span>
-					</div>
-				{:else}
-					<div class="flex flex-row items-center gap-3">
-						<span>Winner: {gameService.winner.name}</span>
-						<MedalIcon />
-					</div>
-				{/if}
-			</Card>
+			<div class="flex w-full flex-col items-center gap-2">
+				<PointsHistory />
+
+				<Card class="w-fit border-primary p-3">
+					{#if gameService.winner === 'draw'}
+						<div class="flex flex-row items-center gap-3">
+							<RepeatIcon />
+							<span> Draw!</span>
+						</div>
+					{:else}
+						<div class="flex flex-row items-center gap-3">
+							<span>Winner: {gameService.winner.name}</span>
+							<MedalIcon />
+						</div>
+					{/if}
+				</Card>
+			</div>
 		{/if}
 	</Card>
 {/if}
