@@ -2,7 +2,7 @@
 	import { characterService } from '$lib/CharacterService.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { classLabels } from '$lib/types/class';
-	import { Button } from './ui/button';
+	import { Button, buttonVariants } from './ui/button';
 	import {
 		BicepsFlexed,
 		Brain,
@@ -64,10 +64,11 @@
 					<Table.Cell class="text-center">{character.wins}/{character.losses}</Table.Cell>
 					<Table.Cell class="text-end">
 						<Dialog.Root>
-							<Dialog.Trigger>
-								<Button variant="destructive" size="icon">
-									<Trash2Icon />
-								</Button>
+							<Dialog.Trigger
+								type="button"
+								class={buttonVariants({ variant: 'destructive', size: 'icon' })}
+							>
+								<Trash2Icon />
 							</Dialog.Trigger>
 							<Dialog.Content>
 								<Dialog.Header>
