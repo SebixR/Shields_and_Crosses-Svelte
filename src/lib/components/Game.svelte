@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DicesIcon, MedalIcon, PlayIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
+	import { DicesIcon, PlayIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
 	import { gameService } from '../../GameService.svelte';
 	import { Button } from './ui/button';
 	import { Card } from './ui/card';
@@ -27,7 +27,7 @@
 </div>
 
 {#if gameService.playerCharacter && gameService.cpuCharacter}
-	<Card class="mb-32 flex flex-col items-center gap-4 p-4">
+	<Card class="relative mb-32 flex flex-col items-center gap-4 p-4">
 		<div class="flex flex-row items-center gap-4">
 			<GameCharacterCard character={gameService.playerCharacter} />VS<GameCharacterCard
 				character={gameService.cpuCharacter}
@@ -46,19 +46,16 @@
 			<div class="flex w-full flex-col items-center gap-2">
 				<PointsHistory />
 
-				<Card class="w-fit border-primary p-3">
-					{#if gameService.winner === 'draw'}
+				{#if gameService.winner === 'draw'}
+					<Card
+						class="absolute top-2 w-fit border-primary px-4 py-3 shadow-[0_0_10px_2px_var(--primary)]"
+					>
 						<div class="flex flex-row items-center gap-3">
 							<RepeatIcon />
 							<span> Draw!</span>
 						</div>
-					{:else}
-						<div class="flex flex-row items-center gap-3">
-							<span>Winner: {gameService.winner.name}</span>
-							<MedalIcon />
-						</div>
-					{/if}
-				</Card>
+					</Card>
+				{/if}
 			</div>
 		{/if}
 	</Card>
