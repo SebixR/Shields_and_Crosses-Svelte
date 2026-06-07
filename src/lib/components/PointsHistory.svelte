@@ -11,9 +11,9 @@
 <Card class="w-full border-primary p-3">
 	<Collapsible.Root>
 		<div class="flex items-center justify-between px-2">
-			<span class="font-semibold">Points</span>
-			<Collapsible.Trigger class={buttonVariants({ variant: 'ghost', class: '' })}>
-				<ChevronsUpDownIcon />
+			<Collapsible.Trigger class={buttonVariants({ variant: 'ghost', class: 'w-full' })}>
+				Points
+				<ChevronsUpDownIcon class="ms-auto" />
 			</Collapsible.Trigger>
 		</div>
 
