@@ -16,7 +16,9 @@
 				<ChevronsUpDownIcon />
 			</Collapsible.Trigger>
 		</div>
+
 		<Collapsible.Content class="flex flex-col gap-2 px-2 pt-2">
+			{#if gameService.pointsHistory.length === 0}-{/if}
 			{#each gameService.pointsHistory as hist, i (i)}
 				<div class="max-w-130" style="overflow-wrap: anywhere;">
 					<strong>{hist.characterName}</strong>
