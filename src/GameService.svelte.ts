@@ -100,8 +100,11 @@ class GameService {
 			}
 
 			if (!this.#cpuCharacter) {
-				const cpuRecord = await getRandomExcludingId(this.#playerCharacter.id);
-				if (!cpuRecord) throw new Error('CPU character is undefined');
+				let cpuRecord = await getRandomExcludingId(this.#playerCharacter.id);
+				if (!cpuRecord) {
+					cpuRecord = await getCharacterById(this.#playerCharacter.id);
+					if (!cpuRecord) throw new Error('CPU character is undefined');
+				}
 				this.#cpuCharacter = { ...cpuRecord, swapsLeft: TOTAL_SWAPS };
 			}
 
