@@ -175,13 +175,13 @@ class GameService {
 			this.#board[index] = PLAYER_SYMBOL;
 
 			this.addStats(index, this.#playerCharacter);
-			const finalStatus = this.checkWin(PLAYER_SYMBOL);
-			if (finalStatus) {
+			const gameEnded = this.checkWin(PLAYER_SYMBOL);
+			if (gameEnded) {
 				this.#playersTurn = false;
 				this.#calculatingPoints = true;
 
-				if (finalStatus.result === 'win') {
-					this.#winningPattern = finalStatus.pattern;
+				if (gameEnded.result === 'win') {
+					this.#winningPattern = gameEnded.pattern;
 
 					await this.calculateBonuses(
 						this.#playerCharacter,
@@ -189,7 +189,7 @@ class GameService {
 						false,
 						this.getWinningStat()
 					);
-				} else if (finalStatus.result === 'draw') {
+				} else if (gameEnded.result === 'draw') {
 					const random: boolean = Math.random() < 0.5;
 					await this.calculateBonuses(
 						random ? this.#cpuCharacter : this.#playerCharacter,
@@ -213,8 +213,8 @@ class GameService {
 							? this.#cpuCharacter.id
 							: this.#playerCharacter.id;
 
-					await characterService.updateWL(winnerId, true);
-					await characterService.updateWL(loserId, false);
+					const playerWon = this.#playerCharacter.id === winnerId;
+					await characterService.updateWL(winnerId, loserId, playerWon);
 				}
 
 				return;
@@ -279,8 +279,8 @@ class GameService {
 									? this.#cpuCharacter.id
 									: this.#playerCharacter.id;
 
-							await characterService.updateWL(winnerId, true);
-							await characterService.updateWL(loserId, false);
+							const playerWon = this.#playerCharacter.id === winnerId;
+							await characterService.updateWL(winnerId, loserId, playerWon);
 						}
 						return;
 					}

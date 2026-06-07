@@ -27,7 +27,19 @@
 			<Table.Head><BicepsFlexed class="m-auto" size="20" /></Table.Head>
 			<Table.Head><SportShoe class="m-auto" size="20" /></Table.Head>
 			<Table.Head><Brain class="m-auto" size="20" /></Table.Head>
-			<Table.Head><span class="block w-full text-center">W/L</span></Table.Head>
+			<Table.Head>
+				<div class="flex flex-row items-center gap-2">
+					<UserIcon size="20" />
+					<span>W/L</span>
+				</div>
+			</Table.Head>
+
+			<Table.Head>
+				<div class="flex flex-row items-center gap-2">
+					<CpuIcon size="20" />
+					<span>W/L</span>
+				</div>
+			</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	{#key characterService.characters}
@@ -61,7 +73,12 @@
 					<Table.Cell class="text-center">{character.strength}</Table.Cell>
 					<Table.Cell class="text-center">{character.speed}</Table.Cell>
 					<Table.Cell class="text-center">{character.intelligence}</Table.Cell>
-					<Table.Cell class="text-center">{character.wins}/{character.losses}</Table.Cell>
+					<Table.Cell class="text-center"
+						>{character.playerWL.wins}/{character.playerWL.losses}</Table.Cell
+					>
+					<Table.Cell class="text-center"
+						>{character.cpuWL.wins}/{character.cpuWL.losses}</Table.Cell
+					>
 					<Table.Cell class="text-end">
 						<Dialog.Root>
 							<Dialog.Trigger

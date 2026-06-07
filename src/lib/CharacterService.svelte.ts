@@ -53,8 +53,8 @@ class CharacterService {
 		}
 	}
 
-	async updateWL(id: number, win: boolean) {
-		await updateWinLoseRatio(id, win);
+	async updateWL(winnerId: number, loserId: number, playerWon: boolean) {
+		await updateWinLoseRatio(winnerId, loserId, playerWon);
 
 		await this.init();
 	}
@@ -66,8 +66,8 @@ async function createCharacter(character: Character) {
 	try {
 		await db.characters.add({
 			...character,
-			wins: 0,
-			losses: 0
+			playerWL: { wins: 0, losses: 0 },
+			cpuWL: { wins: 0, losses: 0 }
 		});
 	} catch (error) {
 		console.error('Failed to create the character ' + character.name, error);
@@ -110,22 +110,43 @@ export async function getRandomExcludingId(playerId: number): Promise<CharacterR
 	}
 }
 
-async function updateWinLoseRatio(id: number, win: boolean) {
+async function updateWinLoseRatio(winnerId: number, loserId: number, playerWon: boolean) {
 	try {
-		const characterRecord = await db.characters.get(id);
-		if (!characterRecord) throw new Error("Couldn't find character with id: " + id);
+		const winnerRecord = await getCharacterById(winnerId);
+		const loserRecord = await getCharacterById(loserId);
 
-		if (win) await db.characters.update(id, { wins: characterRecord.wins + 1 });
-		else await db.characters.update(id, { losses: characterRecord.losses + 1 });
+		if (playerWon) {
+			await db.characters.update(winnerId, {
+				playerWL: { ...winnerRecord.playerWL, wins: winnerRecord.playerWL.wins + 1 }
+			});
+
+			await db.characters.update(loserId, {
+				cpuWL: { ...loserRecord.cpuWL, losses: loserRecord.cpuWL.losses + 1 }
+			});
+		} else {
+			await db.characters.update(winnerId, {
+				cpuWL: { ...winnerRecord.cpuWL, wins: winnerRecord.cpuWL.wins + 1 }
+			});
+
+			await db.characters.update(loserId, {
+				playerWL: { ...loserRecord.playerWL, losses: loserRecord.playerWL.losses + 1 }
+			});
+		}
 	} catch (error) {
-		console.error('Failed to update win lose ratio for character with id: ' + id, error);
+		console.error(
+			'Failed to update win lose ratio for characters with ids: ' + winnerId + ' and ' + loserId,
+			error
+		);
 		throw error;
 	}
 }
 
-export async function getCharacterById(id: number): Promise<CharacterRecord | undefined> {
+export async function getCharacterById(id: number): Promise<CharacterRecord> {
 	try {
-		return db.characters.get(id);
+		const character = await db.characters.get(id);
+		if (!character) throw new Error('Character is undefined');
+
+		return character;
 	} catch (error) {
 		console.error('Failed to get character with id: ' + id, error);
 		throw error;

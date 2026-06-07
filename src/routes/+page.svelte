@@ -22,7 +22,7 @@
 
 	<Form />
 
-	<Card class="relative flex w-164 flex-col p-4">
+	<Card class="p-4">
 		<span class="text-lg text-primary-foreground">Characters</span>
 
 		<CharactersTable />

@@ -8,6 +8,11 @@ export interface Character {
 
 export interface CharacterRecord extends Character {
 	id: number;
+	playerWL: WinLose;
+	cpuWL: WinLose;
+}
+
+interface WinLose {
 	wins: number;
 	losses: number;
 }
