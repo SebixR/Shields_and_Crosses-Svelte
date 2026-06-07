@@ -473,7 +473,7 @@ class GameService {
 				const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 2;
 				this.#pointsHistory.push({
-					characterName: winnerCharacter.name,
+					character: winnerCharacter,
 					points: 2,
 					description: BONUS_DOUBLE,
 					statistic: lowestDiffStat
@@ -484,7 +484,7 @@ class GameService {
 				const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 				loserCharacter[lowestDiffStat] += 2;
 				this.#pointsHistory.push({
-					characterName: loserCharacter.name,
+					character: loserCharacter,
 					points: 2,
 					description: BONUS_DOUBLE,
 					statistic: lowestDiffStat
@@ -497,7 +497,7 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 					winnerCharacter[lowestDiffStat] += 2;
 					this.#pointsHistory.push({
-						characterName: winnerCharacter.name,
+						character: winnerCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -508,7 +508,7 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 					loserCharacter[lowestDiffStat] += 2;
 					this.#pointsHistory.push({
-						characterName: loserCharacter.name,
+						character: loserCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -519,7 +519,7 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 					loserCharacter[lowestDiffStat] += 2;
 					this.#pointsHistory.push({
-						characterName: loserCharacter.name,
+						character: loserCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -530,7 +530,7 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 					winnerCharacter[lowestDiffStat] += 2;
 					this.#pointsHistory.push({
-						characterName: winnerCharacter.name,
+						character: winnerCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -546,7 +546,7 @@ class GameService {
 			let lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 			winnerCharacter[lowestDiffStat] += 2;
 			this.#pointsHistory.push({
-				characterName: winnerCharacter.name,
+				character: winnerCharacter,
 				points: 2,
 				description: BONUS_WIN,
 				statistic: lowestDiffStat
@@ -558,7 +558,7 @@ class GameService {
 				lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 1;
 				this.#pointsHistory.push({
-					characterName: winnerCharacter.name,
+					character: winnerCharacter,
 					points: 1,
 					description: BONUS_WIN_WITH_BOUND_STAT,
 					statistic: lowestDiffStat

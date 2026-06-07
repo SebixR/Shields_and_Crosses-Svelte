@@ -1,3 +1,4 @@
+import type { CharacterPlayer } from './character';
 import type { Statistic } from './stats';
 
 export type GameSymbol = 'O' | 'X';
@@ -9,7 +10,7 @@ export type Cell = GameSymbol | null;
 export interface BonusPointDescription {
 	points: number;
 	description: string;
-	characterName: string;
+	character: CharacterPlayer;
 	statistic: Statistic;
 }
 export const BONUS_DOUBLE = 'secured a double advantage in their primary statistic';

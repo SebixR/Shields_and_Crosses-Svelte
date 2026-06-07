@@ -21,7 +21,16 @@
 			{#if gameService.pointsHistory.length === 0}-{/if}
 			{#each gameService.pointsHistory as hist, i (i)}
 				<div class="max-w-130" style="overflow-wrap: anywhere;">
-					<strong>{hist.characterName}</strong>
+					<strong>{hist.character.name} </strong>
+
+					{#if gameService.playerCharacter!.name === gameService.cpuCharacter!.name}
+						{#if gameService.cpuCharacter === hist.character}
+							(CPU)
+						{:else}
+							(player)
+						{/if}
+					{/if}
+
 					{hist.description}:
 					<i><b>+{hist.points}</b></i>
 					points to <i><b>{statLabels[hist.statistic]}</b></i>
