@@ -199,22 +199,20 @@ class GameService {
 					);
 				}
 				this.#calculatingPoints = false;
-				const winnerId = this.decideWinner(this.#playerCharacter, this.#cpuCharacter);
+				const tempWinner = this.decideWinner(this.#playerCharacter, this.#cpuCharacter);
 				this.#winner =
-					winnerId === null
+					tempWinner === null
 						? 'draw'
-						: winnerId === this.#playerCharacter.id
+						: tempWinner === this.#playerCharacter
 							? this.#playerCharacter
 							: this.#cpuCharacter;
 
-				if (winnerId !== null) {
-					const loserId: number =
-						winnerId === this.#playerCharacter.id
-							? this.#cpuCharacter.id
-							: this.#playerCharacter.id;
+				if (tempWinner !== null) {
+					const tempLoser =
+						tempWinner === this.#playerCharacter ? this.#cpuCharacter : this.#playerCharacter;
 
-					const playerWon = this.#playerCharacter.id === winnerId;
-					await characterService.updateWL(winnerId, loserId, playerWon);
+					const playerWon = this.#playerCharacter === tempWinner;
+					await characterService.updateWL(tempWinner.id, tempLoser.id, playerWon);
 				}
 
 				return;
@@ -265,22 +263,15 @@ class GameService {
 							);
 						}
 						this.#calculatingPoints = false;
-						const winnerId = this.decideWinner(this.#playerCharacter, this.#cpuCharacter);
-						this.#winner =
-							winnerId === null
-								? 'draw'
-								: winnerId === this.#playerCharacter.id
-									? this.#playerCharacter
-									: this.#cpuCharacter;
+						const tempWinner = this.decideWinner(this.#playerCharacter, this.#cpuCharacter);
+						this.#winner = tempWinner === null ? 'draw' : tempWinner;
 
-						if (winnerId !== null) {
-							const loserId: number =
-								winnerId === this.#playerCharacter.id
-									? this.#cpuCharacter.id
-									: this.#playerCharacter.id;
+						if (tempWinner !== null) {
+							const tempLoser =
+								tempWinner === this.#playerCharacter ? this.#cpuCharacter : this.#playerCharacter;
 
-							const playerWon = this.#playerCharacter.id === winnerId;
-							await characterService.updateWL(winnerId, loserId, playerWon);
+							const playerWon = this.#playerCharacter === tempWinner;
+							await characterService.updateWL(tempWinner.id, tempLoser.id, playerWon);
 						}
 						return;
 					}
@@ -627,7 +618,10 @@ class GameService {
 		}
 	}
 
-	decideWinner(character: CharacterPlayer, otherCharacter: CharacterPlayer): number | null {
+	decideWinner(
+		character: CharacterPlayer,
+		otherCharacter: CharacterPlayer
+	): CharacterPlayer | null {
 		let characterWinCount = 0;
 		let otherCharacterWinCount = 0;
 
@@ -636,8 +630,8 @@ class GameService {
 			if (character[stat] < otherCharacter[stat]) otherCharacterWinCount++;
 		}
 
-		if (characterWinCount > otherCharacterWinCount) return character.id;
-		else if (otherCharacterWinCount > characterWinCount) return otherCharacter.id;
+		if (characterWinCount > otherCharacterWinCount) return character;
+		else if (otherCharacterWinCount > characterWinCount) return otherCharacter;
 		else return null;
 	}
 
