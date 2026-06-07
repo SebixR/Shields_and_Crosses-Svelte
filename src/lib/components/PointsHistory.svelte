@@ -11,14 +11,13 @@
 <Card class="w-full border-primary p-3">
 	<Collapsible.Root>
 		<div class="flex items-center justify-between px-2">
-			<span class="font-semibold">Bonus Points</span>
+			<span class="font-semibold">Points</span>
 			<Collapsible.Trigger class={buttonVariants({ variant: 'ghost', class: '' })}>
 				<ChevronsUpDownIcon />
 			</Collapsible.Trigger>
 		</div>
 
 		<Collapsible.Content class="flex flex-col gap-2 px-2 pt-2">
-			{#if gameService.pointsHistory.length === 0}-{/if}
 			{#each gameService.pointsHistory as hist, i (i)}
 				<div class="max-w-130" style="overflow-wrap: anywhere;">
 					<strong>{hist.character.name} </strong>
