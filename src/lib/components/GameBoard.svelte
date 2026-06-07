@@ -6,18 +6,18 @@
 </script>
 
 <div class="-ms-16 flex flex-row gap-2">
-	<div class="flex flex-col justify-end gap-2">
+	<div class="flex flex-col justify-end gap-1">
 		{#each gameService.boardStats?.rowStats as stat (stat)}
-			<div class="flex h-8 items-center">
-				<Badge variant="outline" class="w-14 text-sm">
+			<div class="flex h-14 items-center">
+				<Badge variant="outline" class="w-full text-sm">
 					{#if stat === 'strength'}
-						<BicepsFlexedIcon class="w-14" />
+						<BicepsFlexedIcon />
 						<span>str</span>
 					{:else if stat === 'speed'}
-						<SportShoeIcon class="w-14" />
+						<SportShoeIcon />
 						<span>spd</span>
 					{:else}
-						<BrainIcon class="w-14" />
+						<BrainIcon />
 						<span>int</span>
 					{/if}
 				</Badge>
@@ -30,32 +30,35 @@
 			{#each gameService.boardStats?.colStats as stat (stat)}
 				<Badge variant="outline" class="w-14 text-sm">
 					{#if stat === 'strength'}
-						<BicepsFlexedIcon class="w-14" />
+						<BicepsFlexedIcon />
 						<span>str</span>
 					{:else if stat === 'speed'}
-						<SportShoeIcon class="w-14" />
+						<SportShoeIcon />
 						<span>spd</span>
 					{:else}
-						<BrainIcon class="w-14" />
+						<BrainIcon />
 						<span>int</span>
 					{/if}
 				</Badge>
 			{/each}
 		</div>
 
-		<div class="grid w-48 grid-cols-3 gap-2">
+		<div class="grid grid-cols-3 gap-1 bg-muted">
 			{#each gameService.board as cell, index (index)}
-				<Button
-					variant={gameService.winningPattern?.includes(index) ? 'default' : 'outline'}
-					onclick={() => gameService.makeMove(index)}
-					disabled={!gameService.playersTurn || !gameService.playerAvailableCells.has(index)}
-				>
-					{#if cell === 'X'}
-						<XIcon class="size-5" />
-					{:else if cell === 'O'}
-						<CircleIcon />
-					{/if}
-				</Button>
+				<div class="size-14 bg-background">
+					<Button
+						class="size-14 border-none"
+						variant={gameService.winningPattern?.includes(index) ? 'default' : 'ghost'}
+						onclick={() => gameService.makeMove(index)}
+						disabled={!gameService.playersTurn || !gameService.playerAvailableCells.has(index)}
+					>
+						{#if cell === 'X'}
+							<XIcon class="size-7" />
+						{:else if cell === 'O'}
+							<CircleIcon class="size-6" />
+						{/if}
+					</Button>
+				</div>
 			{/each}
 		</div>
 	</div>
