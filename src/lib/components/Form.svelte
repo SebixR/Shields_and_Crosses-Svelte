@@ -194,12 +194,20 @@
 
 		<Separator class="my-4" />
 
-		<div class="flex flex-row justify-end">
-			<Button class="cursor-pointer rounded-lg" type="submit" disabled={isLoading}>
+		<div class="flex flex-row justify-end gap-2">
+			{#if 'id' in characterService.formCharacter}
+				<Button onclick={resetForm} class="cursor-pointer">Cancel</Button>
+			{/if}
+			<Button class="cursor-pointer" type="submit" disabled={isLoading}>
 				{#if isLoading}
 					<Spinner class="animate-spin" />
 				{/if}
-				Create
+
+				{#if 'id' in characterService.formCharacter}
+					Edit
+				{:else}
+					Create
+				{/if}
 			</Button>
 		</div>
 	</form>
