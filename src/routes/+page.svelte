@@ -30,7 +30,7 @@
 
 	<Game />
 
-	<div class="h-32"></div>
+	<div class="h-[50svh]"></div>
 
 	<RulesDrawer />
 </div>

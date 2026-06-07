@@ -12,7 +12,7 @@
 	<Drawer.Content>
 		<div class="thin mx-auto w-150 overflow-auto pe-4" style="scrollbar-width: thin">
 			<article class="mt-6 flex flex-col gap-2">
-				<h2 class="text-white">Shields & Crosses: Game Rules</h2>
+				<h2 class="font-bold text-white">Shields & Crosses: Game Rules</h2>
 
 				<section>
 					<p>Each class has one associated primary statistic:</p>
@@ -40,7 +40,6 @@
 				<Separator class="my-2" />
 
 				<section class="flex flex-col gap-2">
-					<h3>Scoring Phase</h3>
 					<p>At the end of the game, points are calculated as follows:</p>
 
 					<ol class="flex flex-col gap-2">
@@ -48,18 +47,14 @@
 							<strong>Board Points:</strong> Each statistic is increased by the number of fields
 							occupied on the board (calculated per row and column). <br />
 							<em
-								>Note: Stats present in [Stat x Stat] fields (ex. [str x str]) are counted twice,
-								but only for the stats associated with the specific characters playing.</em
+								>Note: Stats present in [Stat x Stat] fields (ex. [str x str]) increase the
+								character's primary statistic by 3, instead of 2 points.</em
 							>
 						</li>
 
 						<li>
-							<strong>Initial Comparison:</strong> Base statistics are compared before bonuses are applied.
-						</li>
-
-						<li>
 							<strong>Bonus Points (Applied in strict order):</strong>
-							<ul>
+							<ul class="space-y-2">
 								<li>
 									<strong>Double Advantage:</strong> If a character has double the points in their
 									primary stat (or the opponent has 0), they receive +2 to a drawing stat or the
@@ -83,6 +78,8 @@
 							</ul>
 						</li>
 
+						<Separator class="my-2" />
+
 						<li>
 							<strong>Victory Condition:</strong> The character who wins in at least two out of the three
 							statistics is declared the winner.
@@ -94,7 +91,7 @@
 					</ol>
 				</section>
 			</article>
-			<Drawer.Footer class="mb-4">Have fun!</Drawer.Footer>
+			<Drawer.Footer class="mb-4"></Drawer.Footer>
 		</div>
 	</Drawer.Content>
 </Drawer.Root>
