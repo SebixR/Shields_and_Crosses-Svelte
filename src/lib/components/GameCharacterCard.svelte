@@ -9,9 +9,9 @@
 	const { character }: { character: CharacterPlayer } = $props();
 	let isWinner = $derived.by(() => {
 		const currentWinner = gameService.winner;
-		const currentCharacterId = character?.id;
+		const currentCharacter = character;
 
-		return currentWinner && currentWinner !== 'draw' && currentWinner.id === currentCharacterId;
+		return currentWinner && currentWinner !== 'draw' && currentWinner === currentCharacter;
 	});
 </script>
 
