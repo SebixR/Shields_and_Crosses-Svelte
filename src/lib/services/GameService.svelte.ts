@@ -32,6 +32,8 @@ export const winPatterns: [number, number, number][] = [
 	[2, 4, 6]
 ];
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 class GameService {
 	#playerCharacter = $state<CharacterPlayer>();
 	#cpuCharacter = $state<CharacterPlayer>();
@@ -163,19 +165,60 @@ class GameService {
 			if (!this.#playerCharacter || !this.#cpuCharacter) return;
 
 			if (!this.#playerAvailableCells.has(index))
-				throw new Error('The player cannot perform this move');
+				throw new Error('The player has no available moves');
 
-			// handle swapping by the player
-			if (this.#board[index] === CPU_SYMBOL) {
-				this.subtractStats(index, this.#cpuCharacter);
-				this.#playerCharacter.swapsLeft--;
+			await this.handleMakeMove(index, this.#playerCharacter, true);
+			this.#playersTurn = false;
+			if (this.#winner) return;
+
+			// CPU is thinking
+			const randomDelay = Math.floor(Math.random() * (2000 - 500 + 1)) + 500;
+			await delay(randomDelay);
+
+			const cells = this.getAvailableCells(this.#cpuCharacter, this.#playerCharacter);
+			const cpuIndex = this.CPUMove(cells);
+			if (cpuIndex === undefined) {
+				console.error('CPU has no available moves');
+				return;
+			}
+
+			await this.handleMakeMove(cpuIndex, this.#cpuCharacter, false);
+
+			// update which cells are available to the player
+			const availableCellsTemp = this.getAvailableCells(this.#playerCharacter, this.#cpuCharacter);
+			this.#playerAvailableCells = new Set([
+				...availableCellsTemp.availableCells,
+				...availableCellsTemp.swappableCells
+			]);
+
+			this.#playersTurn = true;
+		} catch (error) {
+			console.error('Failed to make move at index: ' + index, error);
+			throw error;
+		}
+	}
+
+	// character - the character that is making a move
+	async handleMakeMove(index: number, character: CharacterPlayer, isPlayer: boolean) {
+		try {
+			if (!this.#playerCharacter || !this.#cpuCharacter)
+				throw new Error("Player's character or CPU's character is undefined");
+
+			const symbol = isPlayer ? PLAYER_SYMBOL : CPU_SYMBOL;
+			const opponentSymbol = isPlayer ? CPU_SYMBOL : PLAYER_SYMBOL;
+			const opponentCharacter = isPlayer ? this.#cpuCharacter : this.#playerCharacter;
+
+			// handle swapping
+			if (this.#board[index] === opponentSymbol) {
+				this.subtractStats(index, opponentCharacter);
+				character.swapsLeft--;
 			}
 
 			// make move
-			this.#board[index] = PLAYER_SYMBOL;
+			this.#board[index] = symbol;
 
-			this.addStats(index, this.#playerCharacter);
-			const gameEnded = this.checkWin(PLAYER_SYMBOL);
+			this.addStats(index, character);
+			const gameEnded = this.checkWin(symbol);
 			if (gameEnded) {
 				this.#playersTurn = false;
 				this.#calculatingPoints = true;
@@ -183,33 +226,23 @@ class GameService {
 				if (gameEnded.result === 'win') {
 					this.#winningPattern = gameEnded.pattern;
 
-					await this.calculateBonuses(
-						this.#playerCharacter,
-						this.#cpuCharacter,
-						false,
-						this.getWinningStat()
-					);
+					await this.calculateBonuses(character, opponentCharacter, false, this.getWinningStat());
 				} else if (gameEnded.result === 'draw') {
 					const random: boolean = Math.random() < 0.5;
 					await this.calculateBonuses(
-						random ? this.#cpuCharacter : this.#playerCharacter,
-						random ? this.#playerCharacter : this.#cpuCharacter,
+						random ? character : opponentCharacter,
+						random ? opponentCharacter : character,
 						true,
 						null
 					);
 				}
 				this.#calculatingPoints = false;
-				const tempWinner = this.decideWinner(this.#playerCharacter, this.#cpuCharacter);
+				const tempWinner = this.decideWinner(character, opponentCharacter);
 				this.#winner =
-					tempWinner === null
-						? 'draw'
-						: tempWinner === this.#playerCharacter
-							? this.#playerCharacter
-							: this.#cpuCharacter;
+					tempWinner === null ? 'draw' : tempWinner === character ? character : opponentCharacter;
 
 				if (tempWinner !== null) {
-					const tempLoser =
-						tempWinner === this.#playerCharacter ? this.#cpuCharacter : this.#playerCharacter;
+					const tempLoser = tempWinner === character ? opponentCharacter : character;
 
 					const playerWon = this.#playerCharacter === tempWinner;
 					await characterService.updateWL(tempWinner.id, tempLoser.id, playerWon);
@@ -217,81 +250,8 @@ class GameService {
 
 				return;
 			}
-
-			this.#playersTurn = false;
-			setTimeout(
-				async () => {
-					if (!this.#playerCharacter || !this.#cpuCharacter) return;
-
-					const cells = this.getAvailableCells(this.#cpuCharacter, this.#playerCharacter);
-					const index = this.CPUMove(cells);
-					if (index === undefined) {
-						console.error('CPU has no available moves');
-						return;
-					}
-
-					// handle swapping by the CPU
-					if (this.#board[index] === PLAYER_SYMBOL) {
-						this.subtractStats(index, this.#playerCharacter);
-						this.#cpuCharacter.swapsLeft--;
-					}
-
-					// make move
-					this.#board[index] = CPU_SYMBOL;
-
-					this.addStats(index, this.#cpuCharacter);
-					const finalStatus = this.checkWin(CPU_SYMBOL);
-					if (finalStatus) {
-						this.#playersTurn = false;
-						this.#calculatingPoints = true;
-						if (finalStatus.result === 'win') {
-							this.#winningPattern = finalStatus.pattern;
-
-							await this.calculateBonuses(
-								this.#cpuCharacter,
-								this.#playerCharacter,
-								false,
-								this.getWinningStat()
-							);
-						} else if (finalStatus.result === 'draw') {
-							const random: boolean = Math.random() < 0.5;
-							await this.calculateBonuses(
-								random ? this.#cpuCharacter : this.#playerCharacter,
-								random ? this.#playerCharacter : this.#cpuCharacter,
-								true,
-								null
-							);
-						}
-						this.#calculatingPoints = false;
-						const tempWinner = this.decideWinner(this.#playerCharacter, this.#cpuCharacter);
-						this.#winner = tempWinner === null ? 'draw' : tempWinner;
-
-						if (tempWinner !== null) {
-							const tempLoser =
-								tempWinner === this.#playerCharacter ? this.#cpuCharacter : this.#playerCharacter;
-
-							const playerWon = this.#playerCharacter === tempWinner;
-							await characterService.updateWL(tempWinner.id, tempLoser.id, playerWon);
-						}
-						return;
-					}
-
-					// update which cells are available to the player
-					const availableCellsTemp = this.getAvailableCells(
-						this.#playerCharacter,
-						this.#cpuCharacter
-					);
-					this.#playerAvailableCells = new Set([
-						...availableCellsTemp.availableCells,
-						...availableCellsTemp.swappableCells
-					]);
-
-					this.#playersTurn = true;
-				},
-				Math.floor(Math.random() * (2000 - 500 + 1)) + 500
-			);
 		} catch (error) {
-			console.error('Failed to make move at index: ' + index, error);
+			console.error('Failed to handle move to: ' + index, error);
 			throw error;
 		}
 	}

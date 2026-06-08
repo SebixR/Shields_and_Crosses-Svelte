@@ -6,6 +6,12 @@
 	import GameBoard from './GameBoard.svelte';
 	import GameCharacterCard from './GameCharacterCard.svelte';
 	import PointsHistory from './PointsHistory.svelte';
+
+	const onClickReset = async () => {
+		gameService.playerCharacter = undefined;
+		gameService.cpuCharacter = undefined;
+		await gameService.resetGame();
+	};
 </script>
 
 <div class="flex flex-row gap-2">
@@ -20,10 +26,7 @@
 	<Button
 		disabled={(!gameService.playerCharacter && !gameService.cpuCharacter) ||
 			gameService.calculatingPoints}
-		onclick={() => {
-			gameService.playerCharacter = undefined;
-			gameService.cpuCharacter = undefined;
-		}}><RotateCcwIcon /> Reset</Button
+		onclick={() => onClickReset()}><RotateCcwIcon /> Reset</Button
 	>
 </div>
 
