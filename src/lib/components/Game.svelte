@@ -18,7 +18,8 @@
 		Play</Button
 	>
 	<Button
-		disabled={!gameService.playerCharacter && !gameService.cpuCharacter}
+		disabled={(!gameService.playerCharacter && !gameService.cpuCharacter) ||
+			gameService.calculatingPoints}
 		onclick={() => {
 			gameService.playerCharacter = undefined;
 			gameService.cpuCharacter = undefined;
