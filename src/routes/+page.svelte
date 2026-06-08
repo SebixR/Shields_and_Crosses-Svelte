@@ -5,11 +5,13 @@
 	import Game from '$lib/components/Game.svelte';
 	import RulesDrawer from '$lib/components/RulesDrawer.svelte';
 	import { Card } from '$lib/components/ui/card';
+	import { globalWLService } from '$lib/GlobalWLService.svelte';
 	import { CircleIcon, XIcon } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
 		await characterService.init();
+		globalWLService.init();
 	});
 </script>
 

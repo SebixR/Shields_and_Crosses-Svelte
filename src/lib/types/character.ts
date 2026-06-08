@@ -12,7 +12,7 @@ export interface CharacterRecord extends Character {
 	cpuWL: WinLose;
 }
 
-interface WinLose {
+export interface WinLose {
 	wins: number;
 	losses: number;
 }

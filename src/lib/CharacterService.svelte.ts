@@ -1,4 +1,5 @@
 import { db } from '../db';
+import { globalWLService } from './GlobalWLService.svelte';
 import { BASE_CHARACTER, type Character, type CharacterRecord } from './types/character';
 
 type FormCharacter = Character | CharacterRecord;
@@ -55,6 +56,7 @@ class CharacterService {
 
 	async updateWL(winnerId: number, loserId: number, playerWon: boolean) {
 		await updateWinLoseRatio(winnerId, loserId, playerWon);
+		globalWLService.updateGlobalWL(playerWon);
 
 		await this.init();
 	}
