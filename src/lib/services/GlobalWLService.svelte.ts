@@ -1,4 +1,4 @@
-import type { WinLose } from './types/character';
+import type { WinLose } from '../types/character';
 
 // these are the player's wins and losses - every player loss is a CPU win
 const GLOBAL_WINS_KEY = 'globalWins';

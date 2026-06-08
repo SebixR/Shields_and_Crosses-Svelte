@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { statistics } from '$lib/types/stats';
 	import { ChevronDownIcon, ChevronUpIcon, EqualIcon } from '@lucide/svelte';
-	import { gameService } from '../../GameService.svelte';
+	import { gameService } from '$lib/services/GameService.svelte';
 	import StatisticBadge from './StatisticBadge.svelte';
 	import { boundStatistics } from '$lib/types/class';
 	import Separator from './ui/separator/separator.svelte';

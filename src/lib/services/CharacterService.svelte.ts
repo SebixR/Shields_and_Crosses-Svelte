@@ -1,6 +1,6 @@
-import { db } from '../db';
+import { db } from '../../db';
 import { globalWLService } from './GlobalWLService.svelte';
-import { BASE_CHARACTER, type Character, type CharacterRecord } from './types/character';
+import { BASE_CHARACTER, type Character, type CharacterRecord } from '../types/character';
 
 type FormCharacter = Character | CharacterRecord;
 

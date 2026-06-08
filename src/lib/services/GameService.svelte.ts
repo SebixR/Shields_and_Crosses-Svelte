@@ -2,7 +2,7 @@ import {
 	characterService,
 	getCharacterById,
 	getRandomExcludingId
-} from '$lib/CharacterService.svelte';
+} from './CharacterService.svelte';
 import type { CharacterPlayer } from '$lib/types/character';
 import { boundStatistics } from '$lib/types/class';
 import {

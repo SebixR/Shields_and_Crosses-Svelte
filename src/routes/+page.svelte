@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { characterService } from '$lib/CharacterService.svelte';
+	import { characterService } from '$lib/services/CharacterService.svelte';
 	import CharactersTable from '$lib/components/CharactersTable.svelte';
 	import Form from '$lib/components/Form.svelte';
 	import Game from '$lib/components/Game.svelte';
 	import RulesDrawer from '$lib/components/RulesDrawer.svelte';
 	import { Card } from '$lib/components/ui/card';
-	import { globalWLService } from '$lib/GlobalWLService.svelte';
+	import { globalWLService } from '$lib/services/GlobalWLService.svelte';
 	import { CircleIcon, XIcon } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 

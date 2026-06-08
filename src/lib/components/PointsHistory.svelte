@@ -4,7 +4,7 @@
 	import { Card } from './ui/card';
 	import FinalStatSummary from './FinalStatSummary.svelte';
 	import { buttonVariants } from './ui/button';
-	import { gameService } from '../../GameService.svelte';
+	import { gameService } from '$lib/services/GameService.svelte';
 	import { statLabels } from '$lib/types/stats';
 </script>
 

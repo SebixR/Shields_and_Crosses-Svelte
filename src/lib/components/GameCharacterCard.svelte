@@ -4,7 +4,7 @@
 	import { MedalIcon } from '@lucide/svelte';
 	import StatisticBadge from './StatisticBadge.svelte';
 	import { Card } from './ui/card';
-	import { gameService } from '../../GameService.svelte';
+	import { gameService } from '$lib/services/GameService.svelte';
 
 	const { character }: { character: CharacterPlayer } = $props();
 	let isWinner = $derived.by(() => {

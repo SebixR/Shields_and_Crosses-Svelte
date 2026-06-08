@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { BicepsFlexedIcon, BrainIcon, CircleIcon, SportShoeIcon, XIcon } from '@lucide/svelte';
 	import { Badge } from './ui/badge';
-	import { gameService } from '../../GameService.svelte';
+	import { gameService } from '$lib/services/GameService.svelte';
 	import { Button } from './ui/button';
 </script>
 

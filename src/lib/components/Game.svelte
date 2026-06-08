@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DicesIcon, PlayIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
-	import { gameService } from '../../GameService.svelte';
+	import { gameService } from '$lib/services/GameService.svelte';
 	import { Button } from './ui/button';
 	import { Card } from './ui/card';
 	import GameBoard from './GameBoard.svelte';

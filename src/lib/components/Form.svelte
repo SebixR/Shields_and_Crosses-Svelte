@@ -10,7 +10,7 @@
 	import { Button } from './ui/button';
 	import { Spinner } from './ui/spinner';
 	import StatInput from './StatInput.svelte';
-	import { characterService } from '$lib/CharacterService.svelte';
+	import { characterService } from '$lib/services/CharacterService.svelte';
 	import { BASE_CHARACTER } from '$lib/types/character';
 
 	let availablePoints = $derived<number>(

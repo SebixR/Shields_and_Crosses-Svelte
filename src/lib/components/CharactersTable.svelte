@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { characterService } from '$lib/CharacterService.svelte';
+	import { characterService } from '$lib/services/CharacterService.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { classLabels } from '$lib/types/class';
 	import { Button, buttonVariants } from './ui/button';
@@ -13,9 +13,9 @@
 		UserIcon
 	} from '@lucide/svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { gameService, TOTAL_SWAPS } from '../../GameService.svelte';
+	import { gameService, TOTAL_SWAPS } from '../services/GameService.svelte';
 	import { Checkbox } from './ui/checkbox';
-	import { globalWLService } from '$lib/GlobalWLService.svelte';
+	import { globalWLService } from '$lib/services/GlobalWLService.svelte';
 	import TableCell from './ui/table/table-cell.svelte';
 </script>
 
