@@ -1,6 +1,7 @@
 import { db } from '../../db';
 import { globalWLService } from './GlobalWLService.svelte';
 import { BASE_CHARACTER, type Character, type CharacterRecord } from '../types/character';
+import { gameService } from './GameService.svelte';
 
 type FormCharacter = Character | CharacterRecord;
 
@@ -30,6 +31,17 @@ class CharacterService {
 
 	async delete(id: number) {
 		await deleteCharacter(id);
+
+		let shouldResetGame = false;
+		if (gameService.playerCharacter && gameService.playerCharacter.id === id) {
+			gameService.playerCharacter = undefined;
+			shouldResetGame = true;
+		}
+		if (gameService.cpuCharacter && gameService.cpuCharacter.id === id) {
+			gameService.cpuCharacter = undefined;
+			shouldResetGame = true;
+		}
+		if (shouldResetGame) gameService.resetGame();
 
 		await this.init();
 	}
