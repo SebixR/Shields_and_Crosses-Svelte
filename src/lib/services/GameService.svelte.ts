@@ -322,7 +322,7 @@ class GameService {
 		// handle swapping and losing cells
 		let opponentSymbol;
 		let symbol;
-		if (opponentCharacter.id === this.#playerCharacter!.id) {
+		if (opponentCharacter === this.#playerCharacter) {
 			opponentSymbol = PLAYER_SYMBOL;
 			symbol = CPU_SYMBOL;
 		} else {
