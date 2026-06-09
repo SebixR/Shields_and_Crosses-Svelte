@@ -10,7 +10,8 @@
 	const onClickReset = async () => {
 		gameService.playerCharacter = undefined;
 		gameService.cpuCharacter = undefined;
-		await gameService.resetGame();
+
+		gameService.resetGame();
 	};
 </script>
 

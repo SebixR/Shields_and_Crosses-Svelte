@@ -52,6 +52,8 @@
 						onCheckedChange={(checked) => {
 							if (checked) gameService.playerCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
 							else gameService.playerCharacter = undefined;
+
+							gameService.resetGame();
 						}}
 						checked={gameService.gameView.playerCharacter?.id === character.id}
 					/></Table.Cell
@@ -61,6 +63,8 @@
 						onCheckedChange={(checked) => {
 							if (checked) gameService.cpuCharacter = { ...character, swapsLeft: TOTAL_SWAPS };
 							else gameService.cpuCharacter = undefined;
+
+							gameService.resetGame();
 						}}
 						checked={gameService.gameView.cpuCharacter?.id === character.id}
 					/>

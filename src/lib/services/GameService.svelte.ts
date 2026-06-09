@@ -58,17 +58,14 @@ class GameService {
 	get gameView() {
 		return this.#gameView;
 	}
+	// you can't reset the game here - it breaks the Reset button
 	set playerCharacter(character: CharacterPlayer | undefined) {
 		this.#gameState.playerCharacter = character;
 		this.#gameView.playerCharacter = character ? { ...character } : undefined;
-
-		this.resetGame();
 	}
 	set cpuCharacter(character: CharacterPlayer | undefined) {
 		this.#gameState.cpuCharacter = character;
 		this.#gameView.cpuCharacter = character ? { ...character } : undefined;
-
-		this.resetGame();
 	}
 
 	constructor() {
@@ -108,22 +105,23 @@ class GameService {
 		}
 	}
 	updatePlayerStats() {
-		if (!this.#gameState.playerCharacter || !this.#gameView.playerCharacter) return;
-
-		for (const stat of statistics) {
-			if (this.#gameState.playerCharacter[stat] !== this.#gameView.playerCharacter[stat])
-				this.#gameView.playerCharacter[stat] = this.#gameState.playerCharacter[stat];
+		if (this.#gameState.playerCharacter && this.#gameView.playerCharacter) {
+			for (const stat of statistics) {
+				if (this.#gameState.playerCharacter[stat] !== this.#gameView.playerCharacter[stat])
+					this.#gameView.playerCharacter[stat] = this.#gameState.playerCharacter[stat];
+			}
 		}
 	}
 	updateCpuStats() {
-		if (!this.#gameState.cpuCharacter || !this.#gameView.cpuCharacter) return;
-		for (const stat of statistics) {
-			if (this.#gameState.cpuCharacter[stat] !== this.#gameView.cpuCharacter[stat])
-				this.#gameView.cpuCharacter[stat] = this.#gameState.cpuCharacter[stat];
+		if (this.#gameState.cpuCharacter && this.#gameView.cpuCharacter) {
+			for (const stat of statistics) {
+				if (this.#gameState.cpuCharacter[stat] !== this.#gameView.cpuCharacter[stat])
+					this.#gameView.cpuCharacter[stat] = this.#gameState.cpuCharacter[stat];
+			}
 		}
 	}
 	async updatePoints() {
-		if (!this.#gameState.winner) return;
+		if (!this.#gameState.winner) throw new Error('Failed to update points: winner is undefined');
 
 		this.#gameView.calculatingPoints = true;
 
@@ -219,7 +217,9 @@ class GameService {
 
 	async makeMove(index: number) {
 		try {
-			if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter) return;
+			if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter) {
+				throw new Error('Player or CPU character is undefined');
+			}
 
 			if (!this.#gameState.playerAvailableCells.has(index))
 				throw new Error('The player has no available moves');
@@ -241,8 +241,7 @@ class GameService {
 			);
 			const cpuIndex = this.CPUMove(cells);
 			if (cpuIndex === undefined) {
-				console.error('CPU has no available moves');
-				return;
+				throw new Error('CPU has no available moves');
 			}
 
 			await this.handleMakeMove(cpuIndex, this.#gameState.cpuCharacter, false);
@@ -323,8 +322,6 @@ class GameService {
 
 					await characterService.updateWL(winnerId, loserId, this.#gameState.winner === 'player');
 				}
-
-				return;
 			}
 		} catch (error) {
 			console.error('Failed to handle move to: ' + index, error);
@@ -633,7 +630,10 @@ class GameService {
 	}
 
 	getWinningStat(): Statistic | null {
-		if (!this.#gameState.winningPattern || !this.#gameState.boardStats) return null;
+		if (!this.#gameState.winningPattern || !this.#gameState.boardStats)
+			throw new Error(
+				"Failed to get the winning stat: The wining pattern or the board's statistics are undefined"
+			);
 
 		const boardStats = this.#gameState.boardStats;
 
@@ -658,7 +658,10 @@ class GameService {
 	}
 
 	decideWinner(): Winner | null {
-		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter) return null;
+		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
+			throw new Error(
+				'Failed to decide on the winner: Player character or CPU character is undefined'
+			);
 
 		const playerCharacter = this.#gameState.playerCharacter;
 		const cpuCharacter = this.#gameState.cpuCharacter;
@@ -677,7 +680,7 @@ class GameService {
 	}
 
 	addStats(index: number, character: CharacterPlayer) {
-		if (!this.#gameState.boardStats) return;
+		if (!this.#gameState.boardStats) throw new Error('Board statistics are undefined');
 
 		const colStat: Statistic | undefined = this.#gameState.boardStats.colStats[index % 3];
 		const rowStat: Statistic | undefined =
@@ -694,7 +697,7 @@ class GameService {
 	}
 
 	subtractStats(index: number, character: CharacterPlayer) {
-		if (!this.#gameState.boardStats) return;
+		if (!this.#gameState.boardStats) throw new Error('Board statistics are undefined');
 
 		const colStat: Statistic | undefined = this.#gameState.boardStats.colStats[index % 3];
 		const rowStat: Statistic | undefined =
