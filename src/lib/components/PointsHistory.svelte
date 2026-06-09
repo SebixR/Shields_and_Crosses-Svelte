@@ -18,12 +18,12 @@
 		</div>
 
 		<Collapsible.Content class="flex flex-col gap-2 px-2 pt-2">
-			{#each gameService.pointsHistory as hist, i (i)}
+			{#each gameService.gameView.pointsHistory as hist, i (i)}
 				<div class="max-w-130" style="overflow-wrap: anywhere;">
 					<strong>{hist.character.name} </strong>
 
-					{#if gameService.playerCharacter!.name === gameService.cpuCharacter!.name}
-						{#if gameService.cpuCharacter === hist.character}
+					{#if gameService.gameView.playerCharacter!.name === gameService.gameView.cpuCharacter!.name}
+						{#if gameService.gameView.cpuCharacter === hist.character}
 							(CPU)
 						{:else}
 							(player)

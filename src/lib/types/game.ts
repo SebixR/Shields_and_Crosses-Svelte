@@ -7,6 +7,19 @@ export type BoardStats = { rowStats: Statistic[]; colStats: Statistic[] };
 
 export type Cell = GameSymbol | null;
 
+export interface GameState {
+	playerCharacter?: CharacterPlayer;
+	cpuCharacter?: CharacterPlayer;
+	board: Cell[];
+	boardStats?: BoardStats;
+	playersTurn: boolean;
+	playerAvailableCells: Set<number>;
+	calculatingPoints: boolean;
+	winner?: CharacterPlayer | 'draw';
+	winningPattern?: [number, number, number];
+	pointsHistory: BonusPointDescription[];
+}
+
 export interface BonusPointDescription {
 	points: number;
 	description: string;

@@ -7,25 +7,25 @@
 	import Separator from './ui/separator/separator.svelte';
 </script>
 
-{#if gameService.playerCharacter && gameService.cpuCharacter}
+{#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}
 	<Separator />
 	<div class="flex flex-row justify-between gap-2">
-		<strong>{gameService.playerCharacter.name}:</strong>
+		<strong>{gameService.gameView.playerCharacter.name}:</strong>
 		<div>
 			<StatisticBadge
 				statisticName="strength"
-				statisticValue={gameService.playerCharacter.strength}
-				isBound={boundStatistics[gameService.playerCharacter.class] === 'strength'}
+				statisticValue={gameService.gameView.playerCharacter.strength}
+				isBound={boundStatistics[gameService.gameView.playerCharacter.class] === 'strength'}
 			/>
 			<StatisticBadge
 				statisticName="speed"
-				statisticValue={gameService.playerCharacter.speed}
-				isBound={boundStatistics[gameService.playerCharacter.class] === 'speed'}
+				statisticValue={gameService.gameView.playerCharacter.speed}
+				isBound={boundStatistics[gameService.gameView.playerCharacter.class] === 'speed'}
 			/>
 			<StatisticBadge
 				statisticName="intelligence"
-				statisticValue={gameService.playerCharacter.intelligence}
-				isBound={boundStatistics[gameService.playerCharacter.class] === 'intelligence'}
+				statisticValue={gameService.gameView.playerCharacter.intelligence}
+				isBound={boundStatistics[gameService.gameView.playerCharacter.class] === 'intelligence'}
 			/>
 		</div>
 	</div>
@@ -33,9 +33,9 @@
 	<div class="flex flex-row justify-end gap-1">
 		{#each statistics as stat (stat)}
 			<div class="w-18">
-				{#if gameService.playerCharacter[stat] > gameService.cpuCharacter[stat]}
+				{#if gameService.gameView.playerCharacter[stat] > gameService.gameView.cpuCharacter[stat]}
 					<ChevronDownIcon class="m-auto" />
-				{:else if gameService.playerCharacter[stat] === gameService.cpuCharacter[stat]}
+				{:else if gameService.gameView.playerCharacter[stat] === gameService.gameView.cpuCharacter[stat]}
 					<EqualIcon class="m-auto rotate-90" />
 				{:else}
 					<ChevronUpIcon class="m-auto" />
@@ -45,22 +45,22 @@
 	</div>
 
 	<div class="flex flex-row justify-between gap-2">
-		<strong>{gameService.cpuCharacter.name}:</strong>
+		<strong>{gameService.gameView.cpuCharacter.name}:</strong>
 		<div>
 			<StatisticBadge
 				statisticName="strength"
-				statisticValue={gameService.cpuCharacter.strength}
-				isBound={boundStatistics[gameService.cpuCharacter.class] === 'strength'}
+				statisticValue={gameService.gameView.cpuCharacter.strength}
+				isBound={boundStatistics[gameService.gameView.cpuCharacter.class] === 'strength'}
 			/>
 			<StatisticBadge
 				statisticName="speed"
-				statisticValue={gameService.cpuCharacter.speed}
-				isBound={boundStatistics[gameService.cpuCharacter.class] === 'speed'}
+				statisticValue={gameService.gameView.cpuCharacter.speed}
+				isBound={boundStatistics[gameService.gameView.cpuCharacter.class] === 'speed'}
 			/>
 			<StatisticBadge
 				statisticName="intelligence"
-				statisticValue={gameService.cpuCharacter.intelligence}
-				isBound={boundStatistics[gameService.cpuCharacter.class] === 'intelligence'}
+				statisticValue={gameService.gameView.cpuCharacter.intelligence}
+				isBound={boundStatistics[gameService.gameView.cpuCharacter.class] === 'intelligence'}
 			/>
 		</div>
 	</div>

@@ -55,7 +55,7 @@
 
 							gameService.resetGame();
 						}}
-						checked={gameService.playerCharacter?.id === character.id}
+						checked={gameService.gameView.playerCharacter?.id === character.id}
 					/></Table.Cell
 				>
 				<Table.Cell
@@ -66,7 +66,7 @@
 
 							gameService.resetGame();
 						}}
-						checked={gameService.cpuCharacter?.id === character.id}
+						checked={gameService.gameView.cpuCharacter?.id === character.id}
 					/>
 				</Table.Cell>
 				<Table.Cell class="font-medium">{character.name}</Table.Cell>

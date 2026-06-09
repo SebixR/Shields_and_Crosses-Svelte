@@ -33,11 +33,11 @@ class CharacterService {
 		await deleteCharacter(id);
 
 		let shouldResetGame = false;
-		if (gameService.playerCharacter && gameService.playerCharacter.id === id) {
+		if (gameService.gameView.playerCharacter && gameService.gameView.playerCharacter.id === id) {
 			gameService.playerCharacter = undefined;
 			shouldResetGame = true;
 		}
-		if (gameService.cpuCharacter && gameService.cpuCharacter.id === id) {
+		if (gameService.gameView.cpuCharacter && gameService.gameView.cpuCharacter.id === id) {
 			gameService.cpuCharacter = undefined;
 			shouldResetGame = true;
 		}

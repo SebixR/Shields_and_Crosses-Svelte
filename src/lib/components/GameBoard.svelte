@@ -7,7 +7,7 @@
 
 <div class="-ms-16 flex flex-row gap-2">
 	<div class="flex flex-col justify-end gap-1">
-		{#each gameService.boardStats?.rowStats as stat (stat)}
+		{#each gameService.gameView.boardStats?.rowStats as stat (stat)}
 			<div class="flex h-14 items-center">
 				<Badge variant="outline" class="w-full text-sm">
 					{#if stat === 'strength'}
@@ -27,7 +27,7 @@
 
 	<div class="flex flex-col gap-2">
 		<div class="flex flex-row justify-between">
-			{#each gameService.boardStats?.colStats as stat (stat)}
+			{#each gameService.gameView.boardStats?.colStats as stat (stat)}
 				<Badge variant="outline" class="w-14 text-sm">
 					{#if stat === 'strength'}
 						<BicepsFlexedIcon />
@@ -44,13 +44,14 @@
 		</div>
 
 		<div class="grid grid-cols-3 gap-1 bg-muted">
-			{#each gameService.board as cell, index (index)}
+			{#each gameService.gameView.board as cell, index (index)}
 				<div class="size-14 bg-background">
 					<Button
 						class="size-14 border-none"
-						variant={gameService.winningPattern?.includes(index) ? 'default' : 'ghost'}
+						variant={gameService.gameView.winningPattern?.includes(index) ? 'default' : 'ghost'}
 						onclick={() => gameService.makeMove(index)}
-						disabled={!gameService.playersTurn || !gameService.playerAvailableCells.has(index)}
+						disabled={!gameService.gameView.playersTurn ||
+							!gameService.gameView.playerAvailableCells.has(index)}
 					>
 						{#if cell === 'X'}
 							<XIcon class="size-7" />

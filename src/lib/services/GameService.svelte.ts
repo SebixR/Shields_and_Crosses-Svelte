@@ -9,9 +9,8 @@ import {
 	BONUS_DOUBLE,
 	BONUS_WIN,
 	BONUS_WIN_WITH_BOUND_STAT,
-	type BoardStats,
-	type BonusPointDescription,
 	type Cell,
+	type GameState,
 	type GameSymbol
 } from '$lib/types/game';
 import { statistics, type Statistic } from '$lib/types/stats';
@@ -35,82 +34,105 @@ export const winPatterns: [number, number, number][] = [
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class GameService {
-	#playerCharacter = $state<CharacterPlayer>();
-	#cpuCharacter = $state<CharacterPlayer>();
+	#gameState: GameState = {
+		board: [],
+		playersTurn: false,
+		playerAvailableCells: new Set([...Array(9).keys()]),
+		calculatingPoints: false,
+		pointsHistory: []
+	};
+	// Svelte only creates Proxies for existing fields, so these 'undefined' values have to be here
+	#gameView = $state<GameState>({
+		playerCharacter: undefined,
+		cpuCharacter: undefined,
+		board: [],
+		boardStats: undefined,
+		playersTurn: false,
+		playerAvailableCells: new Set([...Array(9).keys()]),
+		winner: undefined,
+		winningPattern: undefined,
+		calculatingPoints: false,
+		pointsHistory: []
+	});
 
-	#board = $state<Cell[]>(Array(9).fill(null));
-	#boardStats = $state<BoardStats>();
-
-	#playersTurn = $state(true);
-	#playerAvailableCells = $state(new Set([...Array(9).keys()]));
-
-	#calculatingPoints = $state(false);
-	#winner = $state<CharacterPlayer | 'draw'>();
-	#winningPattern = $state<[number, number, number]>();
-
-	#pointsHistory = $state<BonusPointDescription[]>([]);
-
-	get playerCharacter() {
-		return this.#playerCharacter;
+	get gameView() {
+		return this.#gameView;
 	}
 	set playerCharacter(character: CharacterPlayer | undefined) {
-		this.#playerCharacter = character;
-	}
-	get cpuCharacter() {
-		return this.#cpuCharacter;
+		this.#gameState.playerCharacter = character;
+		this.#gameView.playerCharacter = character;
 	}
 	set cpuCharacter(character: CharacterPlayer | undefined) {
-		this.#cpuCharacter = character;
-	}
-	get board() {
-		return this.#board;
-	}
-	get boardStats() {
-		return this.#boardStats;
-	}
-	get playersTurn() {
-		return this.#playersTurn;
-	}
-	get playerAvailableCells() {
-		return this.#playerAvailableCells;
-	}
-	get calculatingPoints() {
-		return this.#calculatingPoints;
-	}
-	get winner() {
-		return this.#winner;
-	}
-	get winningPattern() {
-		return this.#winningPattern;
-	}
-	get pointsHistory() {
-		return this.#pointsHistory;
+		this.#gameState.cpuCharacter = character;
+		this.#gameView.cpuCharacter = character;
 	}
 
 	constructor() {
 		this.rollBoardStats();
 	}
 
+	updateGameView(skipUpdatingCharacters?: boolean) {
+		if (!skipUpdatingCharacters) {
+			this.#gameView = {
+				...this.#gameState,
+				board: [...this.#gameState.board],
+				boardStats: this.#gameState.boardStats ? { ...this.#gameState.boardStats } : undefined,
+				playerAvailableCells: new Set(this.#gameState.playerAvailableCells),
+				winningPattern: this.#gameState.winningPattern
+					? [...this.#gameState.winningPattern]
+					: undefined,
+				pointsHistory: [...this.#gameState.pointsHistory]
+			};
+		} else {
+			this.#gameView.board = [...this.#gameState.board];
+			this.#gameView.boardStats = this.#gameState.boardStats
+				? { ...this.#gameState.boardStats }
+				: undefined;
+			this.#gameView.playersTurn = this.#gameState.playersTurn;
+			this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
+			this.#gameView.winner = this.#gameState.winner
+				? this.#gameState.winner === 'draw'
+					? 'draw'
+					: { ...this.#gameState.winner }
+				: undefined;
+			this.#gameView.winningPattern = this.#gameState.winningPattern
+				? [...this.#gameState.winningPattern]
+				: undefined;
+			this.#gameView.calculatingPoints = this.#gameState.calculatingPoints;
+			this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
+		}
+	}
+	updatePlayerCharacter() {
+		if (this.#gameState.playerCharacter)
+			this.#gameView.playerCharacter = { ...this.#gameState.playerCharacter };
+	}
+	updateCpuCharacter() {
+		if (this.#gameState.cpuCharacter)
+			this.#gameView.cpuCharacter = { ...this.#gameState.cpuCharacter };
+	}
+
 	async startGame() {
 		try {
 			await this.resetGame();
 
-			if (!this.#playerCharacter) {
+			if (!this.#gameState.playerCharacter) {
 				const playerRecord = await getRandomExcludingId(-1);
 				if (!playerRecord) throw new Error('Player character is undefined');
-				this.#playerCharacter = { ...playerRecord, swapsLeft: TOTAL_SWAPS };
+				this.#gameState.playerCharacter = { ...playerRecord, swapsLeft: TOTAL_SWAPS };
 			}
 
-			if (!this.#cpuCharacter) {
-				let cpuRecord = await getRandomExcludingId(this.#playerCharacter.id);
+			if (!this.#gameState.cpuCharacter) {
+				let cpuRecord = await getRandomExcludingId(this.#gameState.playerCharacter.id);
 				if (!cpuRecord) {
-					cpuRecord = await getCharacterById(this.#playerCharacter.id);
+					cpuRecord = await getCharacterById(this.#gameState.playerCharacter.id);
 					if (!cpuRecord) throw new Error('CPU character is undefined');
 				}
-				this.#cpuCharacter = { ...cpuRecord, swapsLeft: TOTAL_SWAPS };
+				this.#gameState.cpuCharacter = { ...cpuRecord, swapsLeft: TOTAL_SWAPS };
 			}
 
 			this.rollBoardStats();
+
+			this.updateGameView();
 		} catch (error) {
 			console.error('Failed to get random CPU character', error);
 			throw error;
@@ -118,7 +140,7 @@ class GameService {
 	}
 
 	rollBoardStats() {
-		this.#boardStats = {
+		this.#gameState.boardStats = {
 			rowStats: [...statistics].sort(() => Math.random() - 0.5),
 			colStats: [...statistics].sort(() => Math.random() - 0.5)
 		};
@@ -126,34 +148,36 @@ class GameService {
 
 	async resetGame() {
 		try {
-			this.#board = Array(9).fill(null);
-			this.#playersTurn = true;
-			this.#playerAvailableCells = new Set([...Array(9).keys()]);
-			this.#winner = undefined;
-			this.#calculatingPoints = false;
-			this.#winningPattern = undefined;
-			this.#pointsHistory = [];
+			this.#gameState.board = Array(9).fill(null);
+			this.#gameState.playersTurn = true;
+			this.#gameState.playerAvailableCells = new Set([...Array(9).keys()]);
+			this.#gameState.winner = undefined;
+			this.#gameState.calculatingPoints = false;
+			this.#gameState.winningPattern = undefined;
+			this.#gameState.pointsHistory = [];
 
-			if (this.#playerCharacter) {
-				const playerRecord = await getCharacterById(this.#playerCharacter.id);
+			if (this.#gameState.playerCharacter) {
+				const playerRecord = await getCharacterById(this.#gameState.playerCharacter.id);
 				if (!playerRecord) throw new Error("Couldn't find player character");
 
-				this.#playerCharacter.strength = playerRecord.strength;
-				this.#playerCharacter.speed = playerRecord.speed;
-				this.#playerCharacter.intelligence = playerRecord.intelligence;
+				this.#gameState.playerCharacter.strength = playerRecord.strength;
+				this.#gameState.playerCharacter.speed = playerRecord.speed;
+				this.#gameState.playerCharacter.intelligence = playerRecord.intelligence;
 
-				this.#playerCharacter.swapsLeft = TOTAL_SWAPS;
+				this.#gameState.playerCharacter.swapsLeft = TOTAL_SWAPS;
 			}
-			if (this.#cpuCharacter) {
-				const cpuRecord = await getCharacterById(this.#cpuCharacter.id);
+			if (this.#gameState.cpuCharacter) {
+				const cpuRecord = await getCharacterById(this.#gameState.cpuCharacter.id);
 				if (!cpuRecord) throw new Error("Couldn't find CPU character");
 
-				this.#cpuCharacter.strength = cpuRecord.strength;
-				this.#cpuCharacter.speed = cpuRecord.speed;
-				this.#cpuCharacter.intelligence = cpuRecord.intelligence;
+				this.#gameState.cpuCharacter.strength = cpuRecord.strength;
+				this.#gameState.cpuCharacter.speed = cpuRecord.speed;
+				this.#gameState.cpuCharacter.intelligence = cpuRecord.intelligence;
 
-				this.#cpuCharacter.swapsLeft = TOTAL_SWAPS;
+				this.#gameState.cpuCharacter.swapsLeft = TOTAL_SWAPS;
 			}
+
+			this.updateGameView();
 		} catch (error) {
 			console.error('Failed to reset game', error);
 			throw error;
@@ -162,36 +186,45 @@ class GameService {
 
 	async makeMove(index: number) {
 		try {
-			if (!this.#playerCharacter || !this.#cpuCharacter) return;
+			if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter) return;
 
-			if (!this.#playerAvailableCells.has(index))
+			if (!this.#gameState.playerAvailableCells.has(index))
 				throw new Error('The player has no available moves');
 
-			await this.handleMakeMove(index, this.#playerCharacter, true);
-			this.#playersTurn = false;
-			if (this.#winner) return;
+			await this.handleMakeMove(index, this.#gameState.playerCharacter, true);
+			this.#gameState.playersTurn = false;
+			this.updateGameView(true);
+			this.updatePlayerCharacter();
+			if (this.#gameState.winner) return;
 
-			// CPU is thinking
-			const randomDelay = Math.floor(Math.random() * (2000 - 500 + 1)) + 500;
-			await delay(randomDelay);
-
-			const cells = this.getAvailableCells(this.#cpuCharacter, this.#playerCharacter);
+			// CPU move
+			const cells = this.getAvailableCells(
+				this.#gameState.cpuCharacter,
+				this.#gameState.playerCharacter
+			);
 			const cpuIndex = this.CPUMove(cells);
 			if (cpuIndex === undefined) {
 				console.error('CPU has no available moves');
 				return;
 			}
 
-			await this.handleMakeMove(cpuIndex, this.#cpuCharacter, false);
+			await this.handleMakeMove(cpuIndex, this.#gameState.cpuCharacter, false);
+			if (!this.#gameState.winner) await this.waitRandomDelay();
 
 			// update which cells are available to the player
-			const availableCellsTemp = this.getAvailableCells(this.#playerCharacter, this.#cpuCharacter);
-			this.#playerAvailableCells = new Set([
+			const availableCellsTemp = this.getAvailableCells(
+				this.#gameState.playerCharacter,
+				this.#gameState.cpuCharacter
+			);
+			this.#gameState.playerAvailableCells = new Set([
 				...availableCellsTemp.availableCells,
 				...availableCellsTemp.swappableCells
 			]);
 
-			this.#playersTurn = true;
+			this.#gameState.playersTurn = true;
+
+			this.updateGameView(true);
+			this.updateCpuCharacter();
 		} catch (error) {
 			console.error('Failed to make move at index: ' + index, error);
 			throw error;
@@ -201,33 +234,41 @@ class GameService {
 	// character - the character that is making a move
 	async handleMakeMove(index: number, character: CharacterPlayer, isPlayer: boolean) {
 		try {
-			if (!this.#playerCharacter || !this.#cpuCharacter)
+			if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
 				throw new Error("Player's character or CPU's character is undefined");
 
 			const symbol = isPlayer ? PLAYER_SYMBOL : CPU_SYMBOL;
 			const opponentSymbol = isPlayer ? CPU_SYMBOL : PLAYER_SYMBOL;
-			const opponentCharacter = isPlayer ? this.#cpuCharacter : this.#playerCharacter;
+			const opponentCharacter = isPlayer
+				? this.#gameState.cpuCharacter
+				: this.#gameState.playerCharacter;
 
 			// handle swapping
-			if (this.#board[index] === opponentSymbol) {
+			if (this.#gameState.board[index] === opponentSymbol) {
 				this.subtractStats(index, opponentCharacter);
 				character.swapsLeft--;
 			}
 
 			// make move
-			this.#board[index] = symbol;
+			this.#gameState.board[index] = symbol;
 
 			this.addStats(index, character);
 			const gameEnded = this.checkWin(symbol);
 			if (gameEnded) {
-				this.#playersTurn = false;
-				this.#calculatingPoints = true;
+				this.#gameState.playersTurn = false;
+				this.#gameState.calculatingPoints = true;
 
 				if (gameEnded.result === 'win') {
-					this.#winningPattern = gameEnded.pattern;
+					this.#gameState.winningPattern = gameEnded.pattern;
+
+					if (!isPlayer) await this.waitRandomDelay();
+					this.updateGameView();
 
 					await this.calculateBonuses(character, opponentCharacter, false, this.getWinningStat());
 				} else if (gameEnded.result === 'draw') {
+					if (!isPlayer) await this.waitRandomDelay();
+					this.updateGameView();
+
 					const random: boolean = Math.random() < 0.5;
 					await this.calculateBonuses(
 						random ? character : opponentCharacter,
@@ -236,15 +277,15 @@ class GameService {
 						null
 					);
 				}
-				this.#calculatingPoints = false;
+				this.#gameState.calculatingPoints = false;
 				const tempWinner = this.decideWinner(character, opponentCharacter);
-				this.#winner =
+				this.#gameState.winner =
 					tempWinner === null ? 'draw' : tempWinner === character ? character : opponentCharacter;
 
 				if (tempWinner !== null) {
 					const tempLoser = tempWinner === character ? opponentCharacter : character;
 
-					const playerWon = this.#playerCharacter === tempWinner;
+					const playerWon = this.#gameState.playerCharacter === tempWinner;
 					await characterService.updateWL(tempWinner.id, tempLoser.id, playerWon);
 				}
 
@@ -275,14 +316,14 @@ class GameService {
 		};
 
 		// add empty cells
-		for (let i = 0; i < this.#board.length; i++) {
-			if (!this.#board[i]) cells.availableCells.add(i);
+		for (let i = 0; i < this.#gameState.board.length; i++) {
+			if (!this.#gameState.board[i]) cells.availableCells.add(i);
 		}
 
 		// handle swapping and losing cells
 		let opponentSymbol;
 		let symbol;
-		if (opponentCharacter === this.#playerCharacter) {
+		if (opponentCharacter === this.#gameState.playerCharacter) {
 			opponentSymbol = PLAYER_SYMBOL;
 			symbol = CPU_SYMBOL;
 		} else {
@@ -291,15 +332,15 @@ class GameService {
 		}
 		for (const [a, b, c] of winPatterns) {
 			if (
-				!this.#board[a] &&
-				this.#board[b] === opponentSymbol &&
-				this.#board[c] === this.#board[b]
+				!this.#gameState.board[a] &&
+				this.#gameState.board[b] === opponentSymbol &&
+				this.#gameState.board[c] === this.#gameState.board[b]
 			) {
-				const tempBoardB = [...this.#board];
+				const tempBoardB = [...this.#gameState.board];
 				tempBoardB[b] = symbol;
 				const bWins = this.checkWin(symbol, tempBoardB);
 
-				const tempBoardC = [...this.#board];
+				const tempBoardC = [...this.#gameState.board];
 				tempBoardC[c] = symbol;
 				const cWins = this.checkWin(symbol, tempBoardC);
 
@@ -308,15 +349,15 @@ class GameService {
 				cells.losingCells.add(a);
 			}
 			if (
-				this.#board[a] === opponentSymbol &&
-				!this.#board[b] &&
-				this.#board[c] === this.#board[a]
+				this.#gameState.board[a] === opponentSymbol &&
+				!this.#gameState.board[b] &&
+				this.#gameState.board[c] === this.#gameState.board[a]
 			) {
-				const tempBoardA = [...this.#board];
+				const tempBoardA = [...this.#gameState.board];
 				tempBoardA[a] = symbol;
 				const aWins = this.checkWin(symbol, tempBoardA);
 
-				const tempBoardC = [...this.#board];
+				const tempBoardC = [...this.#gameState.board];
 				tempBoardC[c] = symbol;
 				const cWins = this.checkWin(symbol, tempBoardC);
 
@@ -325,15 +366,15 @@ class GameService {
 				cells.losingCells.add(b);
 			}
 			if (
-				this.#board[a] === opponentSymbol &&
-				this.#board[b] === this.#board[a] &&
-				!this.#board[c]
+				this.#gameState.board[a] === opponentSymbol &&
+				this.#gameState.board[b] === this.#gameState.board[a] &&
+				!this.#gameState.board[c]
 			) {
-				const tempBoardA = [...this.#board];
+				const tempBoardA = [...this.#gameState.board];
 				tempBoardA[a] = symbol;
 				const aWins = this.checkWin(symbol, tempBoardA);
 
-				const tempBoardB = [...this.#board];
+				const tempBoardB = [...this.#gameState.board];
 				tempBoardB[b] = symbol;
 				const bWins = this.checkWin(symbol, tempBoardB);
 
@@ -368,13 +409,11 @@ class GameService {
 		swappableCells: Set<number>;
 	}): number | undefined {
 		// check if can win, and if yes do so
+		const board = this.#gameState.board;
 		for (const [a, b, c] of winPatterns) {
-			if (!this.#board[a] && this.#board[b] === CPU_SYMBOL && this.#board[c] === CPU_SYMBOL)
-				return a;
-			if (this.#board[a] === CPU_SYMBOL && !this.#board[b] && this.#board[c] === CPU_SYMBOL)
-				return b;
-			if (this.#board[a] === CPU_SYMBOL && this.#board[b] === CPU_SYMBOL && !this.#board[c])
-				return c;
+			if (!board[a] && board[b] === CPU_SYMBOL && board[c] === CPU_SYMBOL) return a;
+			if (board[a] === CPU_SYMBOL && !board[b] && board[c] === CPU_SYMBOL) return b;
+			if (board[a] === CPU_SYMBOL && board[b] === CPU_SYMBOL && !board[c]) return c;
 		}
 
 		// check if opponent can win
@@ -397,7 +436,7 @@ class GameService {
 		symbol: GameSymbol,
 		tempBoard?: Cell[]
 	): { result: 'win' | 'draw'; pattern?: [number, number, number] } | null {
-		const board = tempBoard ? tempBoard : this.#board;
+		const board = tempBoard ? tempBoard : this.#gameState.board;
 
 		for (const [a, b, c] of winPatterns) {
 			const value = board[a];
@@ -423,8 +462,7 @@ class GameService {
 		const winnerBoundStat: Statistic = boundStatistics[winnerCharacter.class];
 		const loserBoundStat: Statistic = boundStatistics[loserCharacter.class];
 
-		const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-		await delay(1000);
+		await delay(500);
 
 		// double lead in bound statistic
 		if (!wasDraw) {
@@ -432,7 +470,7 @@ class GameService {
 			if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
 				const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 2;
-				this.#pointsHistory.push({
+				this.#gameState.pointsHistory.push({
 					character: winnerCharacter,
 					points: 2,
 					description: BONUS_DOUBLE,
@@ -443,7 +481,7 @@ class GameService {
 			if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2) {
 				const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 				loserCharacter[lowestDiffStat] += 2;
-				this.#pointsHistory.push({
+				this.#gameState.pointsHistory.push({
 					character: loserCharacter,
 					points: 2,
 					description: BONUS_DOUBLE,
@@ -456,7 +494,7 @@ class GameService {
 				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
 					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 					winnerCharacter[lowestDiffStat] += 2;
-					this.#pointsHistory.push({
+					this.#gameState.pointsHistory.push({
 						character: winnerCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
@@ -467,7 +505,7 @@ class GameService {
 				if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2) {
 					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 					loserCharacter[lowestDiffStat] += 2;
-					this.#pointsHistory.push({
+					this.#gameState.pointsHistory.push({
 						character: loserCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
@@ -478,7 +516,7 @@ class GameService {
 				if (loserCharacter[loserBoundStat] >= winnerCharacter[winnerBoundStat] * 2) {
 					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 					loserCharacter[lowestDiffStat] += 2;
-					this.#pointsHistory.push({
+					this.#gameState.pointsHistory.push({
 						character: loserCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
@@ -489,7 +527,7 @@ class GameService {
 				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
 					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 					winnerCharacter[lowestDiffStat] += 2;
-					this.#pointsHistory.push({
+					this.#gameState.pointsHistory.push({
 						character: winnerCharacter,
 						points: 2,
 						description: BONUS_DOUBLE,
@@ -499,13 +537,13 @@ class GameService {
 			}
 		}
 
-		await delay(1000);
+		await delay(500);
 
 		// for winning
 		if (!wasDraw) {
 			let lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 			winnerCharacter[lowestDiffStat] += 2;
-			this.#pointsHistory.push({
+			this.#gameState.pointsHistory.push({
 				character: winnerCharacter,
 				points: 2,
 				description: BONUS_WIN,
@@ -517,7 +555,7 @@ class GameService {
 				await delay(1000);
 				lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 1;
-				this.#pointsHistory.push({
+				this.#gameState.pointsHistory.push({
 					character: winnerCharacter,
 					points: 1,
 					description: BONUS_WIN_WITH_BOUND_STAT,
@@ -556,22 +594,24 @@ class GameService {
 	}
 
 	getWinningStat(): Statistic | null {
-		if (!this.#winningPattern || !this.#boardStats) return null;
+		if (!this.#gameState.winningPattern || !this.#gameState.boardStats) return null;
 
-		switch (this.#winningPattern.join(',')) {
+		const boardStats = this.#gameState.boardStats;
+
+		switch (this.#gameState.winningPattern.join(',')) {
 			case '0,1,2':
-				return this.#boardStats.rowStats[0] ?? null;
+				return boardStats.rowStats[0] ?? null;
 			case '3,4,5':
-				return this.#boardStats.rowStats[1] ?? null;
+				return boardStats.rowStats[1] ?? null;
 			case '6,7,8':
-				return this.#boardStats.rowStats[2] ?? null;
+				return boardStats.rowStats[2] ?? null;
 
 			case '0,3,6':
-				return this.#boardStats.colStats[0] ?? null;
+				return boardStats.colStats[0] ?? null;
 			case '1,4,7':
-				return this.#boardStats.colStats[1] ?? null;
+				return boardStats.colStats[1] ?? null;
 			case '2,5,8':
-				return this.#boardStats.colStats[2] ?? null;
+				return boardStats.colStats[2] ?? null;
 
 			default:
 				return null;
@@ -596,10 +636,11 @@ class GameService {
 	}
 
 	addStats(index: number, character: CharacterPlayer) {
-		if (!this.#boardStats) return;
+		if (!this.#gameState.boardStats) return;
 
-		const colStat: Statistic | undefined = this.#boardStats.colStats[index % 3];
-		const rowStat: Statistic | undefined = this.#boardStats.rowStats[Math.floor(index / 3)];
+		const colStat: Statistic | undefined = this.#gameState.boardStats.colStats[index % 3];
+		const rowStat: Statistic | undefined =
+			this.#gameState.boardStats.rowStats[Math.floor(index / 3)];
 		if (colStat && rowStat) {
 			if (rowStat === colStat) {
 				if (boundStatistics[character.class] === rowStat) character[rowStat] += 3;
@@ -612,10 +653,11 @@ class GameService {
 	}
 
 	subtractStats(index: number, character: CharacterPlayer) {
-		if (!this.#boardStats) return;
+		if (!this.#gameState.boardStats) return;
 
-		const colStat: Statistic | undefined = this.#boardStats.colStats[index % 3];
-		const rowStat: Statistic | undefined = this.#boardStats.rowStats[Math.floor(index / 3)];
+		const colStat: Statistic | undefined = this.#gameState.boardStats.colStats[index % 3];
+		const rowStat: Statistic | undefined =
+			this.#gameState.boardStats.rowStats[Math.floor(index / 3)];
 		if (colStat && rowStat) {
 			if (rowStat === colStat) {
 				if (boundStatistics[character.class] === rowStat) character[rowStat] -= 2;
@@ -625,6 +667,10 @@ class GameService {
 				character[rowStat]--;
 			}
 		}
+	}
+
+	async waitRandomDelay() {
+		await delay(Math.floor(Math.random() * (2000 - 500 + 1)) + 500);
 	}
 }
 

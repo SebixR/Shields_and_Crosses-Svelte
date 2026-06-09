@@ -15,8 +15,8 @@
 </script>
 
 <div class="flex flex-row gap-2">
-	<Button disabled={gameService.calculatingPoints} onclick={() => gameService.startGame()}
-		>{#if !gameService.playerCharacter || !gameService.cpuCharacter}
+	<Button disabled={gameService.gameView.calculatingPoints} onclick={() => gameService.startGame()}
+		>{#if !gameService.gameView.playerCharacter || !gameService.gameView.cpuCharacter}
 			<DicesIcon />
 		{:else}
 			<PlayIcon />
@@ -24,33 +24,33 @@
 		Play</Button
 	>
 	<Button
-		disabled={(!gameService.playerCharacter && !gameService.cpuCharacter) ||
-			gameService.calculatingPoints}
+		disabled={(!gameService.gameView.playerCharacter && !gameService.gameView.cpuCharacter) ||
+			gameService.gameView.calculatingPoints}
 		onclick={() => onClickReset()}><RotateCcwIcon /> Reset</Button
 	>
 </div>
 
-{#if gameService.playerCharacter && gameService.cpuCharacter}
+{#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}
 	<Card class="relative mb-32 flex flex-col items-center gap-4 p-4">
 		<div class="flex flex-row items-center gap-4">
-			<GameCharacterCard character={gameService.playerCharacter} />
+			<GameCharacterCard character={gameService.gameView.playerCharacter} />
 			VS
-			<GameCharacterCard character={gameService.cpuCharacter} />
+			<GameCharacterCard character={gameService.gameView.cpuCharacter} />
 		</div>
 
-		{#if gameService.playerCharacter && gameService.cpuCharacter}
+		{#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}
 			<GameBoard />
 		{/if}
 
-		{#if gameService.calculatingPoints}
+		{#if gameService.gameView.calculatingPoints}
 			<span>Calculating points...</span>
 		{/if}
 
-		{#if gameService.winner}
+		{#if gameService.gameView.winner}
 			<div class="flex w-full flex-col items-center gap-2">
 				<PointsHistory />
 
-				{#if gameService.winner === 'draw'}
+				{#if gameService.gameView.winner === 'draw'}
 					<Card
 						class="absolute top-2 w-fit border-primary px-4 py-3 shadow-[0_0_10px_2px_var(--primary)]"
 					>
