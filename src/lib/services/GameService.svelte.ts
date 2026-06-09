@@ -61,11 +61,15 @@ class GameService {
 	}
 	set playerCharacter(character: CharacterPlayer | undefined) {
 		this.#gameState.playerCharacter = character;
-		this.#gameView.playerCharacter = character;
+		this.#gameView.playerCharacter = character ? { ...character } : undefined;
+
+		this.resetGame();
 	}
 	set cpuCharacter(character: CharacterPlayer | undefined) {
 		this.#gameState.cpuCharacter = character;
-		this.#gameView.cpuCharacter = character;
+		this.#gameView.cpuCharacter = character ? { ...character } : undefined;
+
+		this.resetGame();
 	}
 
 	constructor() {
@@ -460,6 +464,9 @@ class GameService {
 		wasDraw: boolean,
 		winnerLine: Statistic | null
 	) {
+		const winnerType = winnerCharacter === this.#gameState.playerCharacter ? 'player' : 'CPU';
+		const loserType = loserCharacter === this.#gameState.playerCharacter ? 'player' : 'CPU';
+
 		const winnerBoundStat: Statistic = boundStatistics[winnerCharacter.class];
 		const loserBoundStat: Statistic = boundStatistics[loserCharacter.class];
 
@@ -472,7 +479,8 @@ class GameService {
 				const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 2;
 				this.#gameState.pointsHistory.push({
-					character: winnerCharacter,
+					characterName: winnerCharacter.name,
+					playerOrCpu: winnerType,
 					points: 2,
 					description: BONUS_DOUBLE,
 					statistic: lowestDiffStat
@@ -483,7 +491,8 @@ class GameService {
 				const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 				loserCharacter[lowestDiffStat] += 2;
 				this.#gameState.pointsHistory.push({
-					character: loserCharacter,
+					characterName: loserCharacter.name,
+					playerOrCpu: loserType,
 					points: 2,
 					description: BONUS_DOUBLE,
 					statistic: lowestDiffStat
@@ -496,7 +505,8 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 					winnerCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
-						character: winnerCharacter,
+						characterName: winnerCharacter.name,
+						playerOrCpu: winnerType,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -507,7 +517,8 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 					loserCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
-						character: loserCharacter,
+						characterName: loserCharacter.name,
+						playerOrCpu: loserType,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -518,7 +529,8 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
 					loserCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
-						character: loserCharacter,
+						characterName: loserCharacter.name,
+						playerOrCpu: loserType,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -529,7 +541,8 @@ class GameService {
 					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 					winnerCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
-						character: winnerCharacter,
+						characterName: winnerCharacter.name,
+						playerOrCpu: winnerType,
 						points: 2,
 						description: BONUS_DOUBLE,
 						statistic: lowestDiffStat
@@ -545,7 +558,8 @@ class GameService {
 			let lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 			winnerCharacter[lowestDiffStat] += 2;
 			this.#gameState.pointsHistory.push({
-				character: winnerCharacter,
+				characterName: winnerCharacter.name,
+				playerOrCpu: winnerType,
 				points: 2,
 				description: BONUS_WIN,
 				statistic: lowestDiffStat
@@ -557,7 +571,8 @@ class GameService {
 				lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 1;
 				this.#gameState.pointsHistory.push({
-					character: winnerCharacter,
+					characterName: winnerCharacter.name,
+					playerOrCpu: winnerType,
 					points: 1,
 					description: BONUS_WIN_WITH_BOUND_STAT,
 					statistic: lowestDiffStat

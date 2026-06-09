@@ -25,7 +25,8 @@ export interface GameState {
 export interface BonusPointDescription {
 	points: number;
 	description: string;
-	character: CharacterPlayer;
+	characterName: string;
+	playerOrCpu: 'player' | 'CPU';
 	statistic: Statistic;
 }
 export const BONUS_DOUBLE = 'secured a double advantage in their primary statistic';
