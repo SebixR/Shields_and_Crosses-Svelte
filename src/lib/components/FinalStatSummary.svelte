@@ -10,7 +10,7 @@
 {#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}
 	<Separator />
 	<div class="flex flex-row justify-between gap-2">
-		<strong>{gameService.gameView.playerCharacter.name}:</strong>
+		<span><strong>{gameService.gameView.playerCharacter.name}</strong> (player):</span>
 		<div>
 			<StatisticBadge
 				statisticName="strength"
@@ -45,7 +45,7 @@
 	</div>
 
 	<div class="flex flex-row justify-between gap-2">
-		<strong>{gameService.gameView.cpuCharacter.name}:</strong>
+		<span><strong>{gameService.gameView.cpuCharacter.name}</strong> (CPU):</span>
 		<div>
 			<StatisticBadge
 				statisticName="strength"

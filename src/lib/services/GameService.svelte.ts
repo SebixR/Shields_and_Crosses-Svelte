@@ -35,11 +35,10 @@ export const winPatterns: [number, number, number][] = [
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class GameService {
-	#gameState: GameState = {
+	#gameState: Omit<GameState, 'calculatingPoints'> = {
 		board: [],
 		playersTurn: false,
 		playerAvailableCells: new Set([...Array(9).keys()]),
-		calculatingPoints: false,
 		pointsHistory: []
 	};
 	// Svelte only creates Proxies for existing fields, so these 'undefined' values have to be here
@@ -76,18 +75,25 @@ class GameService {
 		this.rollBoardStats();
 	}
 
-	updateGameView(skipUpdatingCharacters?: boolean) {
-		if (!skipUpdatingCharacters) {
-			this.#gameView = {
-				...this.#gameState,
-				board: [...this.#gameState.board],
-				boardStats: this.#gameState.boardStats ? { ...this.#gameState.boardStats } : undefined,
-				playerAvailableCells: new Set(this.#gameState.playerAvailableCells),
-				winningPattern: this.#gameState.winningPattern
-					? [...this.#gameState.winningPattern]
-					: undefined,
-				pointsHistory: [...this.#gameState.pointsHistory]
-			};
+	// doesn't update the winner - updatePoints does so after the right delay
+	updateGameView(skipCharacters?: boolean) {
+		if (!skipCharacters) {
+			this.#gameView.playerCharacter = this.#gameState.playerCharacter
+				? { ...this.#gameState.playerCharacter }
+				: undefined;
+			this.#gameView.cpuCharacter = this.#gameState.cpuCharacter
+				? { ...this.#gameState.cpuCharacter }
+				: undefined;
+			this.#gameView.board = [...this.#gameState.board];
+			this.#gameView.boardStats = this.#gameState.boardStats
+				? { ...this.#gameState.boardStats }
+				: undefined;
+			this.#gameView.playersTurn = this.#gameState.playersTurn;
+			this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
+			this.#gameView.winningPattern = this.#gameState.winningPattern
+				? [...this.#gameState.winningPattern]
+				: undefined;
+			this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
 		} else {
 			this.#gameView.board = [...this.#gameState.board];
 			this.#gameView.boardStats = this.#gameState.boardStats
@@ -95,21 +101,44 @@ class GameService {
 				: undefined;
 			this.#gameView.playersTurn = this.#gameState.playersTurn;
 			this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
-			this.#gameView.winner = this.#gameState.winner;
 			this.#gameView.winningPattern = this.#gameState.winningPattern
 				? [...this.#gameState.winningPattern]
 				: undefined;
-			this.#gameView.calculatingPoints = this.#gameState.calculatingPoints;
 			this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
 		}
 	}
-	updatePlayerCharacter() {
-		if (this.#gameState.playerCharacter)
-			this.#gameView.playerCharacter = { ...this.#gameState.playerCharacter };
+	updatePlayerStats() {
+		if (!this.#gameState.playerCharacter || !this.#gameView.playerCharacter) return;
+
+		for (const stat of statistics) {
+			if (this.#gameState.playerCharacter[stat] !== this.#gameView.playerCharacter[stat])
+				this.#gameView.playerCharacter[stat] = this.#gameState.playerCharacter[stat];
+		}
 	}
-	updateCpuCharacter() {
-		if (this.#gameState.cpuCharacter)
-			this.#gameView.cpuCharacter = { ...this.#gameState.cpuCharacter };
+	updateCpuStats() {
+		if (!this.#gameState.cpuCharacter || !this.#gameView.cpuCharacter) return;
+		for (const stat of statistics) {
+			if (this.#gameState.cpuCharacter[stat] !== this.#gameView.cpuCharacter[stat])
+				this.#gameView.cpuCharacter[stat] = this.#gameState.cpuCharacter[stat];
+		}
+	}
+	async updatePoints() {
+		if (!this.#gameState.winner) return;
+
+		this.#gameView.calculatingPoints = true;
+
+		for (const bonus of this.#gameState.pointsHistory) {
+			await delay(750);
+
+			if (bonus.playerOrCpu === 'player') this.updatePlayerStats();
+			else this.updateCpuStats();
+		}
+
+		await delay(750);
+		this.#gameView.calculatingPoints = false;
+		this.#gameView.winner = this.#gameState.winner;
+
+		this.updateGameView(true);
 	}
 
 	async startGame() {
@@ -153,7 +182,6 @@ class GameService {
 			this.#gameState.playersTurn = true;
 			this.#gameState.playerAvailableCells = new Set([...Array(9).keys()]);
 			this.#gameState.winner = undefined;
-			this.#gameState.calculatingPoints = false;
 			this.#gameState.winningPattern = undefined;
 			this.#gameState.pointsHistory = [];
 
@@ -179,6 +207,10 @@ class GameService {
 			}
 
 			this.updateGameView();
+
+			// values not updated by updateGameView()
+			this.#gameView.calculatingPoints = false;
+			this.#gameView.winner = undefined;
 		} catch (error) {
 			console.error('Failed to reset game', error);
 			throw error;
@@ -195,8 +227,12 @@ class GameService {
 			await this.handleMakeMove(index, this.#gameState.playerCharacter, true);
 			this.#gameState.playersTurn = false;
 			this.updateGameView(true);
-			this.updatePlayerCharacter();
-			if (this.#gameState.winner) return;
+			this.updatePlayerStats();
+			if (this.#gameState.winner) {
+				await this.updatePoints();
+
+				return;
+			}
 
 			// CPU move
 			const cells = this.getAvailableCells(
@@ -210,7 +246,6 @@ class GameService {
 			}
 
 			await this.handleMakeMove(cpuIndex, this.#gameState.cpuCharacter, false);
-			if (!this.#gameState.winner) await this.waitRandomDelay();
 
 			// update which cells are available to the player
 			const availableCellsTemp = this.getAvailableCells(
@@ -222,10 +257,13 @@ class GameService {
 				...availableCellsTemp.swappableCells
 			]);
 
+			await this.waitRandomDelay();
+
 			this.#gameState.playersTurn = true;
 
 			this.updateGameView(true);
-			this.updateCpuCharacter();
+			this.updateCpuStats();
+			if (this.#gameState.winner) await this.updatePoints();
 		} catch (error) {
 			console.error('Failed to make move at index: ' + index, error);
 			throw error;
@@ -257,28 +295,20 @@ class GameService {
 			const gameEnded = this.checkWin(symbol);
 			if (gameEnded) {
 				this.#gameState.playersTurn = false;
-				this.#gameState.calculatingPoints = true;
 
 				if (gameEnded.result === 'win') {
 					this.#gameState.winningPattern = gameEnded.pattern;
 
-					if (!isPlayer) await this.waitRandomDelay();
-					this.updateGameView();
-
-					await this.calculateBonuses(character, opponentCharacter, false, this.getWinningStat());
+					this.calculateBonuses(character, opponentCharacter, false, this.getWinningStat());
 				} else if (gameEnded.result === 'draw') {
-					if (!isPlayer) await this.waitRandomDelay();
-					this.updateGameView();
-
 					const random: boolean = Math.random() < 0.5;
-					await this.calculateBonuses(
+					this.calculateBonuses(
 						random ? character : opponentCharacter,
 						random ? opponentCharacter : character,
 						true,
 						null
 					);
 				}
-				this.#gameState.calculatingPoints = false;
 
 				this.#gameState.winner = this.decideWinner() ?? undefined;
 				if (this.#gameState.winner && this.#gameState.winner !== 'draw') {
@@ -458,7 +488,7 @@ class GameService {
 		return null;
 	}
 
-	async calculateBonuses(
+	calculateBonuses(
 		winnerCharacter: CharacterPlayer,
 		loserCharacter: CharacterPlayer,
 		wasDraw: boolean,
@@ -469,8 +499,6 @@ class GameService {
 
 		const winnerBoundStat: Statistic = boundStatistics[winnerCharacter.class];
 		const loserBoundStat: Statistic = boundStatistics[loserCharacter.class];
-
-		await delay(500);
 
 		// double lead in bound statistic
 		if (!wasDraw) {
@@ -551,8 +579,6 @@ class GameService {
 			}
 		}
 
-		await delay(500);
-
 		// for winning
 		if (!wasDraw) {
 			let lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
@@ -567,7 +593,6 @@ class GameService {
 
 			// for winning with their column or row
 			if (winnerLine === winnerBoundStat) {
-				await delay(1000);
 				lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
 				winnerCharacter[lowestDiffStat] += 1;
 				this.#gameState.pointsHistory.push({
@@ -579,8 +604,6 @@ class GameService {
 				});
 			}
 		}
-
-		await delay(500);
 	}
 
 	getLowestDiffStat(
