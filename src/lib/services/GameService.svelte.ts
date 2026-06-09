@@ -309,7 +309,7 @@ class GameService {
 					);
 				}
 
-				this.#gameState.winner = this.decideWinner() ?? undefined;
+				this.#gameState.winner = this.decideWinner();
 				if (this.#gameState.winner && this.#gameState.winner !== 'draw') {
 					const winnerId =
 						this.#gameState.winner === 'player'
@@ -657,7 +657,7 @@ class GameService {
 		}
 	}
 
-	decideWinner(): Winner | null {
+	decideWinner(): Winner {
 		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
 			throw new Error(
 				'Failed to decide on the winner: Player character or CPU character is undefined'
@@ -676,7 +676,7 @@ class GameService {
 
 		if (playerWinCount > cpuWinCount) return 'player';
 		else if (cpuWinCount > playerWinCount) return 'CPU';
-		else return null;
+		else return 'draw';
 	}
 
 	addStats(index: number, character: CharacterPlayer) {
