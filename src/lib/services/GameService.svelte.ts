@@ -224,7 +224,7 @@ class GameService {
 			if (!this.#gameState.playerAvailableCells.has(index))
 				throw new Error('The player has no available moves');
 
-			await this.handleMakeMove(index, this.#gameState.playerCharacter, true);
+			await this.handleMakeMove(index, true);
 			this.#gameState.playersTurn = false;
 			this.updateGameView(true);
 			this.updatePlayerStats();
@@ -244,7 +244,7 @@ class GameService {
 				throw new Error('CPU has no available moves');
 			}
 
-			await this.handleMakeMove(cpuIndex, this.#gameState.cpuCharacter, false);
+			await this.handleMakeMove(cpuIndex, false);
 
 			// update which cells are available to the player
 			const availableCellsTemp = this.getAvailableCells(
@@ -269,11 +269,12 @@ class GameService {
 		}
 	}
 
-	// character - the character that is making a move
-	async handleMakeMove(index: number, character: CharacterPlayer, isPlayer: boolean) {
+	async handleMakeMove(index: number, isPlayer: boolean) {
 		try {
 			if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
 				throw new Error("Player's character or CPU's character is undefined");
+
+			const character = isPlayer ? this.#gameState.playerCharacter : this.#gameState.cpuCharacter;
 
 			const symbol = isPlayer ? PLAYER_SYMBOL : CPU_SYMBOL;
 			const opponentSymbol = isPlayer ? CPU_SYMBOL : PLAYER_SYMBOL;
