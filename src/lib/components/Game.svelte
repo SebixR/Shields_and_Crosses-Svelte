@@ -33,9 +33,9 @@
 {#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}
 	<Card class="relative mb-32 flex flex-col items-center gap-4 p-4">
 		<div class="flex flex-row items-center gap-4">
-			<GameCharacterCard character={gameService.gameView.playerCharacter} />
+			<GameCharacterCard character={gameService.gameView.playerCharacter} owner="player" />
 			VS
-			<GameCharacterCard character={gameService.gameView.cpuCharacter} />
+			<GameCharacterCard character={gameService.gameView.cpuCharacter} owner="CPU" />
 		</div>
 
 		{#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}

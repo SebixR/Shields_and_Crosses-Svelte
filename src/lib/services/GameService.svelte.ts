@@ -11,7 +11,8 @@ import {
 	BONUS_WIN_WITH_BOUND_STAT,
 	type Cell,
 	type GameState,
-	type GameSymbol
+	type GameSymbol,
+	type Winner
 } from '$lib/types/game';
 import { statistics, type Statistic } from '$lib/types/stats';
 
@@ -90,11 +91,7 @@ class GameService {
 				: undefined;
 			this.#gameView.playersTurn = this.#gameState.playersTurn;
 			this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
-			this.#gameView.winner = this.#gameState.winner
-				? this.#gameState.winner === 'draw'
-					? 'draw'
-					: { ...this.#gameState.winner }
-				: undefined;
+			this.#gameView.winner = this.#gameState.winner;
 			this.#gameView.winningPattern = this.#gameState.winningPattern
 				? [...this.#gameState.winningPattern]
 				: undefined;
@@ -278,15 +275,19 @@ class GameService {
 					);
 				}
 				this.#gameState.calculatingPoints = false;
-				const tempWinner = this.decideWinner(character, opponentCharacter);
-				this.#gameState.winner =
-					tempWinner === null ? 'draw' : tempWinner === character ? character : opponentCharacter;
 
-				if (tempWinner !== null) {
-					const tempLoser = tempWinner === character ? opponentCharacter : character;
+				this.#gameState.winner = this.decideWinner() ?? undefined;
+				if (this.#gameState.winner && this.#gameState.winner !== 'draw') {
+					const winnerId =
+						this.#gameState.winner === 'player'
+							? this.#gameState.playerCharacter.id
+							: this.#gameState.cpuCharacter.id;
+					const loserId =
+						this.#gameState.winner === 'player'
+							? this.#gameState.cpuCharacter.id
+							: this.#gameState.playerCharacter.id;
 
-					const playerWon = this.#gameState.playerCharacter === tempWinner;
-					await characterService.updateWL(tempWinner.id, tempLoser.id, playerWon);
+					await characterService.updateWL(winnerId, loserId, this.#gameState.winner === 'player');
 				}
 
 				return;
@@ -618,20 +619,22 @@ class GameService {
 		}
 	}
 
-	decideWinner(
-		character: CharacterPlayer,
-		otherCharacter: CharacterPlayer
-	): CharacterPlayer | null {
-		let characterWinCount = 0;
-		let otherCharacterWinCount = 0;
+	decideWinner(): Winner | null {
+		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter) return null;
+
+		const playerCharacter = this.#gameState.playerCharacter;
+		const cpuCharacter = this.#gameState.cpuCharacter;
+
+		let playerWinCount = 0;
+		let cpuWinCount = 0;
 
 		for (const stat of statistics) {
-			if (character[stat] > otherCharacter[stat]) characterWinCount++;
-			if (character[stat] < otherCharacter[stat]) otherCharacterWinCount++;
+			if (playerCharacter[stat] > cpuCharacter[stat]) playerWinCount++;
+			if (playerCharacter[stat] < cpuCharacter[stat]) cpuWinCount++;
 		}
 
-		if (characterWinCount > otherCharacterWinCount) return character;
-		else if (otherCharacterWinCount > characterWinCount) return otherCharacter;
+		if (playerWinCount > cpuWinCount) return 'player';
+		else if (cpuWinCount > playerWinCount) return 'CPU';
 		else return null;
 	}
 

@@ -6,17 +6,13 @@
 	import { Card } from './ui/card';
 	import { gameService } from '$lib/services/GameService.svelte';
 
-	const { character }: { character: CharacterPlayer } = $props();
-	let isWinner = $derived.by(() => {
-		const currentWinner = gameService.gameView.winner;
-		const currentCharacter = character;
-
-		return currentWinner && currentWinner !== 'draw' && currentWinner === currentCharacter;
-	});
+	const { character, owner }: { character: CharacterPlayer; owner: 'player' | 'CPU' } = $props();
 </script>
 
-<div class={`relative ${isWinner ? 'shadow-[0_0_10px_2px_var(--primary)]' : ''}`}>
-	{#if isWinner}
+<div
+	class={`relative ${gameService.gameView.winner === owner ? 'shadow-[0_0_10px_2px_var(--primary)]' : ''}`}
+>
+	{#if gameService.gameView.winner === owner}
 		<MedalIcon class="absolute -top-2 -right-2 z-1" />
 	{/if}
 	<Card class=" flex w-68 flex-col gap-3 p-4">
