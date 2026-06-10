@@ -17,8 +17,7 @@
 	<div class="flex items-center justify-between">
 		<span class="text-lg text-primary-foreground">Characters</span>
 		<Button
-			disabled={(!gameService.gameView.playerCharacter && !gameService.gameView.cpuCharacter) ||
-				gameService.gameView.calculatingPoints}
+			disabled={!gameService.gameView.playerCharacter && !gameService.gameView.cpuCharacter}
 			onclick={() => onClickReset()}><RotateCcwIcon /> Reset</Button
 		>
 	</div>
