@@ -246,7 +246,7 @@ class GameService {
 
 			await this.waitRandomDelay();
 
-			this.#gameState.playersTurn = true;
+			if (!this.#gameState.winner) this.#gameState.playersTurn = true;
 
 			this.updateGameView(true);
 			this.updateCpuStatus();
@@ -344,15 +344,8 @@ class GameService {
 		}
 
 		// handle swapping and losing cells
-		let opponentSymbol;
-		let symbol;
-		if (opponentCharacter === this.#gameState.playerCharacter) {
-			opponentSymbol = PLAYER_SYMBOL;
-			symbol = CPU_SYMBOL;
-		} else {
-			opponentSymbol = CPU_SYMBOL;
-			symbol = PLAYER_SYMBOL;
-		}
+		const symbol = isPlayer ? PLAYER_SYMBOL : CPU_SYMBOL;
+		const opponentSymbol = isPlayer ? CPU_SYMBOL : PLAYER_SYMBOL;
 		for (const [a, b, c] of winPatterns) {
 			if (
 				!this.#gameState.board[a] &&
@@ -709,8 +702,8 @@ class GameService {
 			this.#gameState.boardStats.rowStats[Math.floor(index / 3)];
 		if (colStat && rowStat) {
 			if (rowStat === colStat) {
-				if (boundStatistics[character.class] === rowStat) character[rowStat] -= 2;
-				else character[rowStat] -= 1;
+				if (boundStatistics[character.class] === rowStat) character[rowStat] -= 3;
+				else character[rowStat] -= 2;
 			} else {
 				character[colStat]--;
 				character[rowStat]--;
