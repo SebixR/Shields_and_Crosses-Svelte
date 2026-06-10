@@ -104,20 +104,24 @@ class GameService {
 			this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
 		}
 	}
-	updatePlayerStats() {
+	updatePlayerStatus() {
 		if (this.#gameState.playerCharacter && this.#gameView.playerCharacter) {
 			for (const stat of statistics) {
 				if (this.#gameState.playerCharacter[stat] !== this.#gameView.playerCharacter[stat])
 					this.#gameView.playerCharacter[stat] = this.#gameState.playerCharacter[stat];
 			}
+
+			this.#gameView.playerCharacter.swapsLeft = this.#gameState.playerCharacter.swapsLeft;
 		}
 	}
-	updateCpuStats() {
+	updateCpuStatus() {
 		if (this.#gameState.cpuCharacter && this.#gameView.cpuCharacter) {
 			for (const stat of statistics) {
 				if (this.#gameState.cpuCharacter[stat] !== this.#gameView.cpuCharacter[stat])
 					this.#gameView.cpuCharacter[stat] = this.#gameState.cpuCharacter[stat];
 			}
+
+			this.#gameView.cpuCharacter.swapsLeft = this.#gameState.cpuCharacter.swapsLeft;
 		}
 	}
 	async updatePoints() {
@@ -128,8 +132,8 @@ class GameService {
 		for (const bonus of this.#gameState.pointsHistory) {
 			await delay(750);
 
-			if (bonus.playerOrCpu === 'player') this.updatePlayerStats();
-			else this.updateCpuStats();
+			if (bonus.playerOrCpu === 'player') this.updatePlayerStatus();
+			else this.updateCpuStatus();
 		}
 
 		await delay(750);
@@ -227,7 +231,7 @@ class GameService {
 			await this.handleMakeMove(index, true);
 			this.#gameState.playersTurn = false;
 			this.updateGameView(true);
-			this.updatePlayerStats();
+			this.updatePlayerStatus();
 			if (this.#gameState.winner) {
 				await this.updatePoints();
 
@@ -261,7 +265,7 @@ class GameService {
 			this.#gameState.playersTurn = true;
 
 			this.updateGameView(true);
-			this.updateCpuStats();
+			this.updateCpuStatus();
 			if (this.#gameState.winner) await this.updatePoints();
 		} catch (error) {
 			console.error('Failed to make move at index: ' + index, error);
