@@ -81,28 +81,18 @@ class GameService {
 			this.#gameView.cpuCharacter = this.#gameState.cpuCharacter
 				? { ...this.#gameState.cpuCharacter }
 				: undefined;
-			this.#gameView.board = [...this.#gameState.board];
-			this.#gameView.boardStats = this.#gameState.boardStats
-				? { ...this.#gameState.boardStats }
-				: undefined;
-			this.#gameView.playersTurn = this.#gameState.playersTurn;
-			this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
-			this.#gameView.winningPattern = this.#gameState.winningPattern
-				? [...this.#gameState.winningPattern]
-				: undefined;
-			this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
-		} else {
-			this.#gameView.board = [...this.#gameState.board];
-			this.#gameView.boardStats = this.#gameState.boardStats
-				? { ...this.#gameState.boardStats }
-				: undefined;
-			this.#gameView.playersTurn = this.#gameState.playersTurn;
-			this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
-			this.#gameView.winningPattern = this.#gameState.winningPattern
-				? [...this.#gameState.winningPattern]
-				: undefined;
-			this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
 		}
+
+		this.#gameView.board = [...this.#gameState.board];
+		this.#gameView.boardStats = this.#gameState.boardStats
+			? { ...this.#gameState.boardStats }
+			: undefined;
+		this.#gameView.playersTurn = this.#gameState.playersTurn;
+		this.#gameView.playerAvailableCells = new Set(this.#gameState.playerAvailableCells);
+		this.#gameView.winningPattern = this.#gameState.winningPattern
+			? [...this.#gameState.winningPattern]
+			: undefined;
+		this.#gameView.pointsHistory = [...this.#gameState.pointsHistory];
 	}
 	updatePlayerStatus() {
 		if (this.#gameState.playerCharacter && this.#gameView.playerCharacter) {
@@ -239,10 +229,7 @@ class GameService {
 			}
 
 			// CPU move
-			const cells = this.getAvailableCells(
-				this.#gameState.cpuCharacter,
-				this.#gameState.playerCharacter
-			);
+			const cells = this.getAvailableCells(false);
 			const cpuIndex = this.CPUMove(cells);
 			if (cpuIndex === undefined) {
 				throw new Error('CPU has no available moves');
@@ -251,10 +238,7 @@ class GameService {
 			await this.handleMakeMove(cpuIndex, false);
 
 			// update which cells are available to the player
-			const availableCellsTemp = this.getAvailableCells(
-				this.#gameState.playerCharacter,
-				this.#gameState.cpuCharacter
-			);
+			const availableCellsTemp = this.getAvailableCells(true);
 			this.#gameState.playerAvailableCells = new Set([
 				...availableCellsTemp.availableCells,
 				...availableCellsTemp.swappableCells
@@ -303,15 +287,10 @@ class GameService {
 				if (gameEnded.result === 'win') {
 					this.#gameState.winningPattern = gameEnded.pattern;
 
-					this.calculateBonuses(character, opponentCharacter, false, this.getWinningStat());
+					this.calculateBonuses(isPlayer, false, this.getWinningStat());
 				} else if (gameEnded.result === 'draw') {
 					const random: boolean = Math.random() < 0.5;
-					this.calculateBonuses(
-						random ? character : opponentCharacter,
-						random ? opponentCharacter : character,
-						true,
-						null
-					);
+					this.calculateBonuses(random, true, null);
 				}
 
 				this.#gameState.winner = this.decideWinner();
@@ -334,14 +313,21 @@ class GameService {
 		}
 	}
 
-	getAvailableCells(
-		character: CharacterPlayer,
-		opponentCharacter: CharacterPlayer
-	): {
+	getAvailableCells(isPlayer: boolean): {
 		losingCells: Set<number>;
 		availableCells: Set<number>;
 		swappableCells: Set<number>;
 	} {
+		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
+			throw new Error(
+				'Failed to get available cells: Player character or CPU character is undefined'
+			);
+
+		const character = isPlayer ? this.#gameState.playerCharacter : this.#gameState.cpuCharacter;
+		const opponentCharacter = isPlayer
+			? this.#gameState.cpuCharacter
+			: this.#gameState.playerCharacter;
+
 		const cells: {
 			losingCells: Set<number>;
 			availableCells: Set<number>;
@@ -490,14 +476,21 @@ class GameService {
 		return null;
 	}
 
-	calculateBonuses(
-		winnerCharacter: CharacterPlayer,
-		loserCharacter: CharacterPlayer,
-		wasDraw: boolean,
-		winnerLine: Statistic | null
-	) {
-		const winnerType = winnerCharacter === this.#gameState.playerCharacter ? 'player' : 'CPU';
-		const loserType = loserCharacter === this.#gameState.playerCharacter ? 'player' : 'CPU';
+	calculateBonuses(playerWon: boolean, wasDraw: boolean, winnerLine: Statistic | null) {
+		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
+			throw new Error(
+				'Failed to calculate bonuses: Player character or CPU character is undefined'
+			);
+
+		const winnerCharacter = playerWon
+			? this.#gameState.playerCharacter
+			: this.#gameState.cpuCharacter;
+		const loserCharacter = playerWon
+			? this.#gameState.cpuCharacter
+			: this.#gameState.playerCharacter;
+
+		const winnerType = playerWon ? 'player' : 'CPU';
+		const loserType = playerWon ? 'CPU' : 'player';
 
 		const winnerBoundStat: Statistic = boundStatistics[winnerCharacter.class];
 		const loserBoundStat: Statistic = boundStatistics[loserCharacter.class];
@@ -506,7 +499,7 @@ class GameService {
 		if (!wasDraw) {
 			// if winner won then they get to compare their bound stat first
 			if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
-				const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+				const lowestDiffStat = this.getLowestDiffStat(winnerType);
 				winnerCharacter[lowestDiffStat] += 2;
 				this.#gameState.pointsHistory.push({
 					characterName: winnerCharacter.name,
@@ -518,7 +511,7 @@ class GameService {
 			}
 
 			if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2) {
-				const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
+				const lowestDiffStat = this.getLowestDiffStat(loserType);
 				loserCharacter[lowestDiffStat] += 2;
 				this.#gameState.pointsHistory.push({
 					characterName: loserCharacter.name,
@@ -532,7 +525,7 @@ class GameService {
 			// if there was a draw, then whoever has the higher bound stat goes first
 			if (winnerCharacter[winnerBoundStat] >= loserCharacter[loserBoundStat]) {
 				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
-					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+					const lowestDiffStat = this.getLowestDiffStat(winnerType);
 					winnerCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
 						characterName: winnerCharacter.name,
@@ -544,7 +537,7 @@ class GameService {
 				}
 
 				if (loserCharacter[loserBoundStat] >= winnerCharacter[loserBoundStat] * 2) {
-					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
+					const lowestDiffStat = this.getLowestDiffStat(loserType);
 					loserCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
 						characterName: loserCharacter.name,
@@ -556,7 +549,7 @@ class GameService {
 				}
 			} else {
 				if (loserCharacter[loserBoundStat] >= winnerCharacter[winnerBoundStat] * 2) {
-					const lowestDiffStat = this.getLowestDiffStat(loserCharacter, winnerCharacter);
+					const lowestDiffStat = this.getLowestDiffStat(loserType);
 					loserCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
 						characterName: loserCharacter.name,
@@ -568,7 +561,7 @@ class GameService {
 				}
 
 				if (winnerCharacter[winnerBoundStat] >= loserCharacter[winnerBoundStat] * 2) {
-					const lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+					const lowestDiffStat = this.getLowestDiffStat(winnerType);
 					winnerCharacter[lowestDiffStat] += 2;
 					this.#gameState.pointsHistory.push({
 						characterName: winnerCharacter.name,
@@ -583,7 +576,7 @@ class GameService {
 
 		// for winning
 		if (!wasDraw) {
-			let lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+			let lowestDiffStat = this.getLowestDiffStat(winnerType);
 			winnerCharacter[lowestDiffStat] += 2;
 			this.#gameState.pointsHistory.push({
 				characterName: winnerCharacter.name,
@@ -595,7 +588,7 @@ class GameService {
 
 			// for winning with their column or row
 			if (winnerLine === winnerBoundStat) {
-				lowestDiffStat = this.getLowestDiffStat(winnerCharacter, loserCharacter);
+				lowestDiffStat = this.getLowestDiffStat(winnerType);
 				winnerCharacter[lowestDiffStat] += 1;
 				this.#gameState.pointsHistory.push({
 					characterName: winnerCharacter.name,
@@ -608,10 +601,17 @@ class GameService {
 		}
 	}
 
-	getLowestDiffStat(
-		receiverCharacter: CharacterPlayer,
-		otherCharacter: CharacterPlayer
-	): Statistic {
+	getLowestDiffStat(receiver: 'player' | 'CPU'): Statistic {
+		if (!this.#gameState.playerCharacter || !this.#gameState.cpuCharacter)
+			throw new Error(
+				'Failed to get lowest diff stat: Player character or CPU character is undefined'
+			);
+
+		const receiverCharacter =
+			receiver === 'player' ? this.#gameState.playerCharacter : this.#gameState.cpuCharacter;
+		const otherCharacter =
+			receiver === 'player' ? this.#gameState.cpuCharacter : this.#gameState.playerCharacter;
+
 		if (receiverCharacter.strength === otherCharacter.strength) return 'strength';
 		if (receiverCharacter.speed === otherCharacter.speed) return 'speed';
 		if (receiverCharacter.intelligence === otherCharacter.intelligence) return 'intelligence';
