@@ -9,7 +9,7 @@
 </script>
 
 <div class="flex flex-row gap-2">
-	<Button disabled={gameService.gameView.calculatingPoints} onclick={() => gameService.startGame()}
+	<Button onclick={() => gameService.startGame()}
 		>{#if !gameService.gameView.playerCharacter || !gameService.gameView.cpuCharacter}
 			<DicesIcon /> Play
 		{:else}
