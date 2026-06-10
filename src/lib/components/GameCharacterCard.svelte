@@ -15,9 +15,9 @@
 	{#if gameService.gameView.winner === owner}
 		<MedalIcon class="absolute -top-2 -right-2 z-1" />
 	{/if}
-	<Card class=" flex w-68 flex-col gap-3 p-4">
+	<Card class=" flex flex-col gap-3 p-4">
 		<span class="w-full text-center">{character.name} ({classLabels[character.class]})</span>
-		<div class="flex w-full flex-row items-center justify-between">
+		<div class="flex w-full flex-row items-center justify-between gap-2">
 			<StatisticBadge
 				statisticName="strength"
 				statisticValue={character.strength}

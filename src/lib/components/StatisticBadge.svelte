@@ -32,7 +32,7 @@
 
 <Badge
 	variant={isBound ? 'default' : 'secondary'}
-	class="w-18 text-sm {isAnimating ? 'pulse' : ''}"
+	class="w-19 px-1 text-sm {isAnimating ? 'pulse' : ''}"
 >
 	{#if statisticName === 'strength'}
 		<BicepsFlexedIcon />
