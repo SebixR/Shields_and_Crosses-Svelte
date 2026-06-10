@@ -156,7 +156,7 @@ class GameService {
 
 			this.updateGameView();
 		} catch (error) {
-			console.error('Failed to get random CPU character', error);
+			console.error('Failed to start game', error);
 			throw error;
 		}
 	}

@@ -6,10 +6,27 @@
 	import GameBoard from './GameBoard.svelte';
 	import GameCharacterCard from './GameCharacterCard.svelte';
 	import PointsHistory from './PointsHistory.svelte';
+	import { db } from '../../db';
+	import { Alert } from './ui/alert';
+
+	let noCharactersError = $state(false);
+
+	const onClickPlay = async () => {
+		gameService.startGame().catch(async () => {
+			if ((await db.characters.count()) === 0) {
+				noCharactersError = true;
+				setTimeout(() => (noCharactersError = false), 4000);
+			}
+		});
+	};
 </script>
 
+{#if noCharactersError}
+	<Alert class="absolute top-4 w-fit py-3" variant="destructive">Create a character first!</Alert>
+{/if}
+
 <div class="flex flex-row gap-2">
-	<Button onclick={() => gameService.startGame()}
+	<Button onclick={() => onClickPlay()}
 		>{#if !gameService.gameView.playerCharacter || !gameService.gameView.cpuCharacter}
 			<DicesIcon /> Play
 		{:else}
