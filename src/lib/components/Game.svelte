@@ -1,34 +1,21 @@
 <script lang="ts">
-	import { DicesIcon, PlayIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
+	import { DicesIcon, RepeatIcon, RotateCcwIcon } from '@lucide/svelte';
 	import { gameService } from '$lib/services/GameService.svelte';
 	import { Button } from './ui/button';
 	import { Card } from './ui/card';
 	import GameBoard from './GameBoard.svelte';
 	import GameCharacterCard from './GameCharacterCard.svelte';
 	import PointsHistory from './PointsHistory.svelte';
-
-	const onClickReset = async () => {
-		gameService.playerCharacter = undefined;
-		gameService.cpuCharacter = undefined;
-
-		gameService.resetGame();
-	};
 </script>
 
 <div class="flex flex-row gap-2">
 	<Button disabled={gameService.gameView.calculatingPoints} onclick={() => gameService.startGame()}
 		>{#if !gameService.gameView.playerCharacter || !gameService.gameView.cpuCharacter}
-			<DicesIcon />
+			<DicesIcon /> Play
 		{:else}
-			<PlayIcon />
+			<RotateCcwIcon /> Restart
 		{/if}
-		Play</Button
-	>
-	<Button
-		disabled={(!gameService.gameView.playerCharacter && !gameService.gameView.cpuCharacter) ||
-			gameService.gameView.calculatingPoints}
-		onclick={() => onClickReset()}><RotateCcwIcon /> Reset</Button
-	>
+	</Button>
 </div>
 
 {#if gameService.gameView.playerCharacter && gameService.gameView.cpuCharacter}
