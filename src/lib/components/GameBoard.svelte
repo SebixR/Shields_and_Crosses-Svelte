@@ -51,7 +51,8 @@
 						variant={gameService.gameView.winningPattern?.includes(index) ? 'default' : 'ghost'}
 						onclick={() => gameService.makeMove(index)}
 						disabled={!gameService.gameView.playersTurn ||
-							!gameService.gameView.playerAvailableCells.has(index)}
+							!gameService.gameView.playerAvailableCells.has(index) ||
+							!!gameService.gameView.winner}
 					>
 						{#if cell === 'X'}
 							<XIcon class="size-7" />
