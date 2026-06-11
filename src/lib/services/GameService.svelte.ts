@@ -229,6 +229,7 @@ class GameService {
 			this.#gameState.playersTurn = false;
 			this.updateGameView(true);
 			this.updatePlayerStatus();
+			this.updateCpuStatus(); // in case the player swapped, and CPU's stats need to be updated
 			if (this.#gameState.winner) {
 				await this.updatePoints();
 
@@ -257,6 +258,7 @@ class GameService {
 
 			this.updateGameView(true);
 			this.updateCpuStatus();
+			this.updatePlayerStatus(); // in case the CPU swapped and player's stats need to be updated
 			if (this.#gameState.winner) await this.updatePoints();
 		} catch (error) {
 			console.error('Failed to make move at index: ' + index, error);
