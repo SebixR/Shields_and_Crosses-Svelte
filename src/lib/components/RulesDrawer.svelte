@@ -25,8 +25,8 @@
 
 				<section>
 					<p>
-						Characters play a game of Tic-Tac-Toe where each column is assigned one of the three
-						statistics (these assignments change every match).
+						Characters play a game of Tic-Tac-Toe where each row and each column is assigned one of
+						the three statistics (these assignments change every match).
 					</p>
 					<p>
 						<em
