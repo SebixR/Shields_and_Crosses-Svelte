@@ -119,14 +119,21 @@ class GameService {
 
 		this.#gameView.calculatingPoints = true;
 
-		for (const bonus of this.#gameState.pointsHistory) {
-			await delay(750);
+		if (this.#gameView.playerCharacter && this.#gameView.cpuCharacter) {
+			for (const bonus of this.#gameState.pointsHistory) {
+				await delay(750);
 
-			if (bonus.playerOrCpu === 'player') this.updatePlayerStatus();
-			else this.updateCpuStatus();
+				if (bonus.playerOrCpu === 'player') {
+					this.#gameView.playerCharacter[bonus.statistic] += bonus.points;
+				} else this.#gameView.cpuCharacter[bonus.statistic] += bonus.points;
+			}
 		}
 
-		await delay(750);
+		// just in case, to make sure the points add up
+		this.updatePlayerStatus();
+		this.updateCpuStatus();
+
+		await delay(500);
 		this.#gameView.calculatingPoints = false;
 		this.#gameView.winner = this.#gameState.winner;
 
@@ -408,9 +415,13 @@ class GameService {
 			for (const stat of statistics) {
 				if (stat === boundStatistic && character[stat] <= opponentCharacter[stat]) {
 					cells.swappableCells = new Set<number>();
+					break;
 				}
-				if (stat !== boundStatistic && character[stat] >= opponentCharacter[stat])
+
+				if (stat !== boundStatistic && character[stat] >= opponentCharacter[stat]) {
 					cells.swappableCells = new Set<number>();
+					break;
+				}
 			}
 		}
 
