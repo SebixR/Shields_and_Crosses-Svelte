@@ -34,6 +34,7 @@ Example:
 Robin Hood (X) is a Rogue, so his primary statistic is Speed, while Gandalf (O) is a mage, his primary statistic being Intelligence.
 Robin's Speed is higher than Gandalf's Speed, while his Strength and Intelligence are lower. Gandalf is also one move away from victory.
 Thus, Robin is allowed to overwrite one of Gandalf's symbols, specifically the one in the top-right corner.
+
 <img width="600" alt="swapping_example" src="https://github.com/user-attachments/assets/c78b45fa-ddf7-4f87-9af0-5bb11a5dea02" />
 
 The O in the middle cannot be overwritten by Robin, because then he'd win the match.
